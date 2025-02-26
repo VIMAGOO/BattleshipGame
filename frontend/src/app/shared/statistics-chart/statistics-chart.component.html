@@ -1,0 +1,50 @@
+<!-- src/app/shared/statistics-chart/statistics-chart.component.html -->
+<div class="statistics-container">
+    <mat-card class="stats-card">
+        <mat-card-header>
+            <mat-card-title>Estadísticas del Juego</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <!-- Main statistics -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Partidas jugadas</div>
+                    <div class="stat-value">{{ chartData.totalGames }}</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-label">Total de disparos</div>
+                    <div class="stat-value">{{ chartData.totalShots }}</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-label">Disparos por partida</div>
+                    <div class="stat-value">{{ chartData.averageShots }}</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-label">Tiempo medio</div>
+                    <div class="stat-value">{{ chartData.averageTime }}</div>
+                </div>
+
+                <div class="stat-item" *ngIf="chartData.bestTime !== 'N/A'">
+                    <div class="stat-label">Mejor tiempo</div>
+                    <div class="stat-value">{{ chartData.bestTime }}</div>
+                </div>
+            </div>
+
+            <!-- Accuracy chart -->
+            <div class="accuracy-section">
+                <div class="accuracy-label">Precisión</div>
+                <div class="accuracy-chart">
+                    <div class="accuracy-bar-container">
+                        <div class="accuracy-bar" [style.width]="getAccuracyBarWidth()">
+                            <span class="accuracy-value">{{ chartData.accuracy }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

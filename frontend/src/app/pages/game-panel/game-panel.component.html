@@ -1,0 +1,61 @@
+<!-- src/app/pages/game-panel/game-panel.component.html -->
+<app-navbar></app-navbar>
+
+<div class="game-panel-container">
+    <div class="game-header">
+        <h1 class="game-title">Batalla Naval</h1>
+
+        <button mat-raised-button color="primary" (click)="startNewGame()" [disabled]="isLoading"
+            class="new-game-button">
+            <mat-icon>refresh</mat-icon>
+            Nueva Partida
+        </button>
+    </div>
+
+    <div class="game-content" *ngIf="!isLoading && currentGame">
+        <div class="game-status-section">
+            <mat-card class="status-card">
+                <mat-card-content>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">Disparos</div>
+                            <div class="status-value">{{ gameStats.shots }}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label">Aciertos</div>
+                            <div class="status-value">{{ gameStats.hits }}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label">Fallos</div>
+                            <div class="status-value">{{ gameStats.misses }}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label">Precisión</div>
+                            <div class="status-value">{{ gameStats.accuracy }}%</div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <div class="game-board-section">
+            <div class="board-wrapper">
+                <div class="board-instructions" *ngIf="!isGameOver">
+                    <p>Haz click en una celda para disparar. ¡Encuentra y hunde todos los barcos!</p>
+                </div>
+
+                <app-game-board [board]="gameBoard" [gameOver]="isGameOver" [isLoading]="isFiringShot"
+                    (cellClick)="handleCellClick($event)">
+                </app-game-board>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner></mat-spinner>
+        <p class="loading-text">Cargando juego...</p>
+    </div>
+</div>

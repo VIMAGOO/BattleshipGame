@@ -1,0 +1,53 @@
+/* src/app/shared/navbar/navbar.component.css */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-links a,
+.nav-links button {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 40px;
+}
+
+.nav-links mat-icon {
+  margin-right: 8px;
+}
+
+.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 600px) {
+  .nav-links span {
+    display: none;
+  }
+
+  .nav-links mat-icon {
+    margin-right: 0;
+  }
+
+  .nav-links a,
+  .nav-links button {
+    padding: 0 12px;
+  }
+}

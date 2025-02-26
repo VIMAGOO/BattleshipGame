@@ -1,0 +1,145 @@
+/* src/app/pages/game-panel/game-panel.component.css */
+.game-panel-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.game-title {
+  margin: 0;
+  font-size: 2rem;
+  color: #1976d2;
+}
+
+.new-game-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.game-status-section {
+  width: 100%;
+}
+
+.status-card {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.status-item {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.status-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.status-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.game-board-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.board-instructions {
+  text-align: center;
+  margin-bottom: 16px;
+  background-color: #e3f2fd;
+  padding: 12px 16px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.board-instructions p {
+  margin: 0;
+  font-size: 16px;
+  color: #0d47a1;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .game-content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .game-status-section {
+    width: 30%;
+  }
+
+  .game-board-section {
+    width: 70%;
+    margin-top: 0;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .game-title {
+    font-size: 1.5rem;
+  }
+
+  .new-game-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

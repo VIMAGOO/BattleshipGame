@@ -1,0 +1,194 @@
+/* src/app/shared/game-board/game-board.component.css */
+.game-board-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.game-board {
+  display: inline-flex;
+  flex-direction: column;
+  border: 2px solid #1976d2;
+  border-radius: 5px;
+  background-color: #f0f8ff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.game-board.disabled {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+}
+
+.corner-cell {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e3f2fd;
+  border-right: 1px solid #bbdefb;
+  border-bottom: 1px solid #bbdefb;
+}
+
+.header-cell {
+  width: 40px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+}
+
+.column-header {
+  background-color: #e3f2fd;
+  border-right: 1px solid #bbdefb;
+  border-bottom: 1px solid #bbdefb;
+}
+
+.row-header {
+  background-color: #e3f2fd;
+  border-right: 1px solid #bbdefb;
+  border-bottom: 1px solid #bbdefb;
+}
+
+.board-row {
+  display: flex;
+}
+
+.board-cell {
+  width: 40px;
+  height: 40px;
+  border-right: 1px solid #bbdefb;
+  border-bottom: 1px solid #bbdefb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.board-cell:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.cell-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Cell status styles */
+.cell-empty {
+  background-color: #ffffff;
+}
+
+.cell-hit {
+  background-color: #f44336;
+}
+
+.cell-miss {
+  background-color: #90caf9;
+}
+
+.cell-ship {
+  background-color: #4caf50;
+}
+
+/* Ship type specific colors */
+.cell-ship-destroyer {
+  background-color: #8bc34a;
+}
+
+.cell-ship-submarine {
+  background-color: #4caf50;
+}
+
+.cell-ship-cruiser {
+  background-color: #009688;
+}
+
+.cell-ship-battleship {
+  background-color: #00897b;
+}
+
+.cell-ship-carrier {
+  background-color: #006064;
+}
+
+/* Hit/Miss markers */
+.hit-marker {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.miss-marker {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(25, 118, 210, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid #1976d2;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Game over overlay */
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.game-over-message {
+  background-color: #1976d2;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

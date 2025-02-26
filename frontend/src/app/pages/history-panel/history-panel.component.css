@@ -1,0 +1,97 @@
+/* src/app/pages/history-panel/history-panel.component.css */
+.history-panel-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.history-header {
+  margin-bottom: 24px;
+}
+
+.history-title {
+  margin: 0;
+  font-size: 2rem;
+  color: #1976d2;
+}
+
+.statistics-section {
+  margin-bottom: 32px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 18px;
+  color: #666;
+}
+
+.no-games-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.no-games-card {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.no-games-message {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  padding: 24px;
+}
+
+.games-table-container {
+  margin-top: 24px;
+}
+
+.games-table {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-header-cell {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 14px;
+}
+
+td.mat-cell {
+  padding: 12px 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .games-table-container {
+    overflow-x: auto;
+  }
+
+  .mat-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 600px) {
+  .history-title {
+    font-size: 1.5rem;
+  }
+
+  .history-panel-container {
+    padding: 16px;
+  }
+}

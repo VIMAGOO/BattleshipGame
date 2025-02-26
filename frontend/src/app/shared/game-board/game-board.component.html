@@ -1,0 +1,43 @@
+<!-- src/app/shared/game-board/game-board.component.html -->
+<div class="game-board-container">
+    <div class="game-board" [class.disabled]="isLoading || gameOver">
+        <!-- Column headers (A-J) -->
+        <div class="header-row">
+            <div class="corner-cell"></div>
+            <div class="header-cell column-header" *ngFor="let label of columnLabels">
+                {{ label }}
+            </div>
+        </div>
+
+        <!-- Board rows -->
+        <div class="board-row" *ngFor="let row of board; let y = index">
+
+            <!-- Row label (1-10) -->
+            <div class="header-cell row-header">
+                {{ rowLabels[y] }}
+            </div>
+
+            <!-- Board cells -->
+            <div class="board-cell" [ngClass]="getCellClass(cell)" *ngFor="let cell of row; let x = index"
+                (click)="onCellClick(x, y)">
+
+                <div class="cell-content">
+                    <div *ngIf="cell.status === 'hit'" class="hit-marker">×</div>
+                    <div *ngIf="cell.status === 'miss'" class="miss-marker">•</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Game over overlay -->
+    <div class="game-over-overlay" *ngIf="gameOver">
+        <div class="game-over-message">
+            ¡Juego completado!
+        </div>
+    </div>
+</div>

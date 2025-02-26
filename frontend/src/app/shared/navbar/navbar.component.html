@@ -1,0 +1,21 @@
+<!-- src/app/shared/navbar/navbar.component.html -->
+<mat-toolbar color="primary" class="navbar">
+    <span class="title">Battleship Game</span>
+
+    <div class="spacer"></div>
+
+    <div class="nav-links">
+        <a mat-button routerLink="/game" routerLinkActive="active">
+            <mat-icon>home</mat-icon>
+            <span>Home</span>
+        </a>
+        <a mat-button routerLink="/history" routerLinkActive="active">
+            <mat-icon>history</mat-icon>
+            <span>Historial</span>
+        </a>
+        <button mat-button (click)="logout()">
+            <mat-icon>exit_to_app</mat-icon>
+            <span>Cerrar</span>
+        </button>
+    </div>
+</mat-toolbar>

@@ -1,0 +1,84 @@
+<!-- src/app/pages/history-panel/history-panel.component.html -->
+<app-navbar></app-navbar>
+
+<div class="history-panel-container">
+    <div class="history-header">
+        <h1 class="history-title">Historial de Partidas</h1>
+    </div>
+
+    <div class="statistics-section" *ngIf="!loading && gameStats">
+        <app-statistics-chart [stats]="gameStats"></app-statistics-chart>
+    </div>
+
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p class="loading-text">Cargando historial...</p>
+    </div>
+
+    <div *ngIf="!loading && (!games || games.length === 0)" class="no-games-container">
+        <mat-card class="no-games-card">
+            <mat-card-content>
+                <p class="no-games-message">No has jugado ninguna partida todavía.</p>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <div *ngIf="!loading && games && games.length > 0" class="games-table-container">
+        <mat-card>
+            <mat-card-content>
+                <table mat-table [dataSource]="displayedGames" matSort (matSortChange)="onSortChange($event)"
+                    class="games-table">
+
+                    <!-- Date Column -->
+                    <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Fecha </th>
+                        <td mat-cell *matCellDef="let game"> {{ game.start_time | date:'dd/MM/yyyy HH:mm' }} </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Estado </th>
+                        <td mat-cell *matCellDef="let game"> {{ formatStatus(game.status) }} </td>
+                    </ng-container>
+
+                    <!-- Shots Column -->
+                    <ng-container matColumnDef="shots">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Disparos </th>
+                        <td mat-cell *matCellDef="let game"> {{ game.total_shots }} </td>
+                    </ng-container>
+
+                    <!-- Hits Column -->
+                    <ng-container matColumnDef="hits">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Aciertos </th>
+                        <td mat-cell *matCellDef="let game"> {{ game.hits }} </td>
+                    </ng-container>
+
+                    <!-- Accuracy Column -->
+                    <ng-container matColumnDef="accuracy">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Precisión </th>
+                        <td mat-cell *matCellDef="let game"> {{ formatAccuracy(game.hits, game.total_shots) }} </td>
+                    </ng-container>
+
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Tiempo </th>
+                        <td mat-cell *matCellDef="let game"> {{ formatGameTime(game) }} </td>
+                    </ng-container>
+
+                    <!-- Score Column -->
+                    <ng-container matColumnDef="score">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Puntuación </th>
+                        <td mat-cell *matCellDef="let game"> {{ game.score }} </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                <mat-paginator [length]="totalGames" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+                    (page)="onPageChange($event)">
+                </mat-paginator>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
