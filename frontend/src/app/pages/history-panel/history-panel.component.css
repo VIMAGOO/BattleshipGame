@@ -1,97 +1,106 @@
-/* src/app/pages/history-panel/history-panel.component.css */
+/* history-panel.component.css */
 .history-panel-container {
-  padding: 24px;
+  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .history-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .history-title {
+  font-size: 24px;
+  font-weight: 500;
   margin: 0;
-  font-size: 2rem;
-  color: #1976d2;
 }
 
 .statistics-section {
-  margin-bottom: 32px;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-}
-
-.loading-text {
-  margin-top: 16px;
-  font-size: 18px;
-  color: #666;
-}
-
-.no-games-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-
-.no-games-card {
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-}
-
-.no-games-message {
-  font-size: 18px;
-  color: #666;
-  margin: 0;
-  padding: 24px;
+  margin-bottom: 30px;
 }
 
 .games-table-container {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .games-table {
   width: 100%;
 }
 
-table {
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.no-games-container {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.no-games-message {
+  font-size: 18px;
+  color: #666;
+}
+
+/* Estilos para la sección de rankings */
+.rankings-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.leaderboard-table {
+  width: 100%;
+}
+
+.current-user {
+  font-weight: bold;
+  color: #1976d2;
+}
+
+.no-rankings-container {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.no-rankings-message {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Ajustar el espaciado entre las secciones */
+.statistics-section,
+.games-table-container,
+.rankings-section {
+  margin-bottom: 2rem;
+}
+
+/* Mejoras visuales para todas las tablas */
+table.mat-table {
   width: 100%;
 }
 
 th.mat-header-cell {
-  font-weight: 600;
-  color: #1976d2;
-  font-size: 14px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.87);
 }
 
-td.mat-cell {
-  padding: 12px 8px;
+tr.mat-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .games-table-container {
-    overflow-x: auto;
-  }
-
-  .mat-table {
-    min-width: 800px;
-  }
-}
-
-@media (max-width: 600px) {
-  .history-title {
-    font-size: 1.5rem;
-  }
-
-  .history-panel-container {
-    padding: 16px;
-  }
+/* Destacar la posición en el ranking */
+td.mat-cell:first-of-type {
+  font-weight: bold;
 }

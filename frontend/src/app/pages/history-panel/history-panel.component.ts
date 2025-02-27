@@ -12,7 +12,18 @@ import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { StatisticsChartComponent } from '../../shared/statistics-chart/statistics-chart.component';
 import { GameService } from '../../services/game.service';
 import { StatisticsService } from '../../services/statistics.service';
+import { AuthService } from '../../services/auth.service';
 import { Game, GameStats } from '../../models/game';
+
+// Interfaz para los datos del leaderboard
+interface LeaderboardPlayer {
+  username: string;
+  score: number;
+  accuracy: number;
+  total_shots: number;
+  hits: number;
+  duration_seconds: number;
+}
 
 @Component({
   selector: 'app-history-panel',
@@ -54,15 +65,29 @@ export class HistoryPanelComponent implements OnInit {
 
   loading = true;
 
+  // Propiedades para el leaderboard
+  leaderboard: LeaderboardPlayer[] = [];
+  leaderboardColumns: string[] = ['position', 'username', 'score', 'accuracy', 'time'];
+  loadingLeaderboard = true;
+  currentUsername = ''; // Para destacar al usuario actual en el ranking
+
   constructor(
     private gameService: GameService,
     private statisticsService: StatisticsService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private authService: AuthService
+  ) {
+    // Obtener el nombre de usuario actual si está disponible
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser) {
+      this.currentUsername = currentUser.username;
+    }
+  }
 
   ngOnInit(): void {
     this.loadGameHistory();
     this.loadStatistics();
+    this.loadLeaderboard();
   }
 
   loadGameHistory(): void {
@@ -107,6 +132,44 @@ export class HistoryPanelComponent implements OnInit {
           duration: 5000,
         });
       },
+    });
+  }
+
+  loadLeaderboard(): void {
+    this.loadingLeaderboard = true;
+
+    this.statisticsService.getLeaderboard().subscribe({
+      next: (response: any) => {
+        console.log('Leaderboard response:', response);
+        // Procesamos la respuesta para asegurarnos de tener el formato correcto
+        if (Array.isArray(response)) {
+          this.leaderboard = response;
+        } else if (response && typeof response === 'object' && 'leaderboard' in response) {
+          this.leaderboard = response.leaderboard;
+        } else {
+          this.leaderboard = [];
+          console.error('Formato de respuesta de leaderboard inesperado:', response);
+        }
+
+        // Aseguramos que los datos numéricos son efectivamente números
+        this.leaderboard = this.leaderboard.map(player => ({
+          ...player,
+          score: Number(player.score),
+          accuracy: Number(player.accuracy),
+          hits: Number(player.hits),
+          total_shots: Number(player.total_shots),
+          duration_seconds: Number(player.duration_seconds)
+        }));
+
+        this.loadingLeaderboard = false;
+      },
+      error: (error) => {
+        console.error('Error loading leaderboard:', error);
+        this.loadingLeaderboard = false;
+        this.snackBar.open('Error cargando el ranking', 'Cerrar', {
+          duration: 5000,
+        });
+      }
     });
   }
 
@@ -192,6 +255,11 @@ export class HistoryPanelComponent implements OnInit {
     return totalShots > 0 ? `${Math.round((hits / totalShots) * 100)}%` : '0%';
   }
 
+  // Método específico para formatear la precisión del leaderboard
+  formatLeaderboardAccuracy(accuracy: number): string {
+    return `${accuracy.toFixed(1)}%`;
+  }
+
   formatGameTime(game: Game): string {
     if (game.status !== 'completed' || !game.end_time) {
       return 'En progreso';
@@ -203,5 +271,10 @@ export class HistoryPanelComponent implements OnInit {
 
   formatStatus(status: string): string {
     return status === 'completed' ? 'Completado' : 'En progreso';
+  }
+
+  // Utilizar el método formatTime de statisticsService directamente
+  formatTime(seconds: number): string {
+    return this.statisticsService.formatTime(seconds);
   }
 }

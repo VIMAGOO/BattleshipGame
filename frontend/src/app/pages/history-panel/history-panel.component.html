@@ -6,15 +6,84 @@
         <h1 class="history-title">Historial de Partidas</h1>
     </div>
 
+    <!-- Sección de estadísticas -->
     <div class="statistics-section" *ngIf="!loading && gameStats">
         <app-statistics-chart [stats]="gameStats"></app-statistics-chart>
     </div>
 
+    <!-- Sección de Ranking Global -->
+    <div class="rankings-section" *ngIf="!loadingLeaderboard && leaderboard && leaderboard.length > 0">
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>Ranking Global</mat-card-title>
+                <mat-card-subtitle>Los mejores jugadores de Hundir la Flota</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <table mat-table [dataSource]="leaderboard" class="leaderboard-table">
+                    <!-- Position Column -->
+                    <ng-container matColumnDef="position">
+                        <th mat-header-cell *matHeaderCellDef> Posición </th>
+                        <td mat-cell *matCellDef="let player; let i = index"> {{ i + 1 }} </td>
+                    </ng-container>
+
+                    <!-- Username Column -->
+                    <ng-container matColumnDef="username">
+                        <th mat-header-cell *matHeaderCellDef> Jugador </th>
+                        <td mat-cell *matCellDef="let player">
+                            <span [class.current-user]="player.username === currentUsername">{{ player.username
+                                }}</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Score Column -->
+                    <ng-container matColumnDef="score">
+                        <th mat-header-cell *matHeaderCellDef> Puntuación </th>
+                        <td mat-cell *matCellDef="let player"> {{ player.score }} </td>
+                    </ng-container>
+
+                    <!-- Accuracy Column -->
+                    <ng-container matColumnDef="accuracy">
+                        <th mat-header-cell *matHeaderCellDef> Precisión </th>
+                        <td mat-cell *matCellDef="let player">
+                            {{ formatLeaderboardAccuracy(player.accuracy) }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef> Tiempo </th>
+                        <td mat-cell *matCellDef="let player">
+                            {{ formatTime(player.duration_seconds) }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="leaderboardColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: leaderboardColumns;"></tr>
+                </table>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <div *ngIf="!loadingLeaderboard && (!leaderboard || leaderboard.length === 0)" class="no-rankings-container">
+        <mat-card class="no-rankings-card">
+            <mat-card-content>
+                <p class="no-rankings-message">Aún no hay suficientes partidas para mostrar un ranking.</p>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <div *ngIf="loadingLeaderboard" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-text">Cargando ranking...</p>
+    </div>
+
+    <!-- Loader de historial -->
     <div *ngIf="loading" class="loading-container">
         <mat-spinner></mat-spinner>
         <p class="loading-text">Cargando historial...</p>
     </div>
 
+    <!-- Mensaje sin partidas -->
     <div *ngIf="!loading && (!games || games.length === 0)" class="no-games-container">
         <mat-card class="no-games-card">
             <mat-card-content>
@@ -23,6 +92,7 @@
         </mat-card>
     </div>
 
+    <!-- Tabla de historial de partidas -->
     <div *ngIf="!loading && games && games.length > 0" class="games-table-container">
         <mat-card>
             <mat-card-content>

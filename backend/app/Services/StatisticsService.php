@@ -92,6 +92,7 @@ class StatisticsService
      */
     public function getLeaderboard(int $limit = 10): array
     {
+        // Asegurarnos de que los campos numéricos están bien definidos
         $topScores = DB::table('games')
             ->join('users', 'games.user_id', '=', 'users.id')
             ->where('games.status', GameStatus::COMPLETED)
@@ -100,13 +101,23 @@ class StatisticsService
                 'games.score',
                 'games.hits',
                 'games.total_shots',
-                DB::raw('(games.hits / games.total_shots * 100) as accuracy'),
+                DB::raw('(CASE WHEN games.total_shots > 0 THEN ROUND((games.hits / games.total_shots * 100), 1) ELSE 0 END) as accuracy'),
                 DB::raw('TIMESTAMPDIFF(SECOND, games.start_time, games.end_time) as duration_seconds')
             )
             ->orderBy('games.score', 'desc')
             ->limit($limit)
             ->get();
             
-        return $topScores->toArray();
+        // Convertir explícitamente los valores para asegurar que son del tipo correcto
+        return $topScores->map(function($item) {
+            return [
+                'username' => $item->username,
+                'score' => (int)$item->score,
+                'hits' => (int)$item->hits,
+                'total_shots' => (int)$item->total_shots,
+                'accuracy' => (float)$item->accuracy,
+                'duration_seconds' => (int)$item->duration_seconds
+            ];
+        })->toArray();
     }
 }
