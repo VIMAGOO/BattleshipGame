@@ -10,7 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { StatisticsChartComponent } from '../../shared/statistics-chart/statistics-chart.component';
@@ -98,9 +98,8 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadGameHistory();
-    this.loadStatistics();
-    this.loadLeaderboard();
+    // Iniciar carga de datos en secuencia para mejorar rendimiento
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -108,8 +107,22 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  loadGameHistory(): void {
+  // Método para cargar todos los datos en secuencia
+  loadData(): void {
     this.loading = true;
+    console.log('Iniciando carga de datos');
+
+    // Primero cargamos las estadísticas
+    this.loadStatistics(() => {
+      // Después cargamos el historial de juegos
+      this.loadGameHistory();
+      // Y finalmente el leaderboard
+      this.loadLeaderboard();
+    });
+  }
+
+  loadGameHistory(): void {
+    console.log('Cargando historial de juegos');
 
     const subscription = this.gameService.getUserGames().subscribe({
       next: (response) => {
@@ -140,8 +153,14 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     this.subscriptions.push(subscription);
   }
 
-  loadStatistics(): void {
-    const subscription = this.statisticsService.getUserStatistics().subscribe({
+  loadStatistics(callback?: () => void): void {
+    console.log('Cargando estadísticas');
+
+    const subscription = this.statisticsService.getUserStatistics().pipe(
+      finalize(() => {
+        if (callback) callback();
+      })
+    ).subscribe({
       next: (stats) => {
         console.log('Statistics loaded:', stats);
         this.gameStats = stats;
@@ -159,6 +178,7 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
 
   loadLeaderboard(): void {
     this.loadingLeaderboard = true;
+    console.log('Cargando leaderboard');
 
     const subscription = this.statisticsService.getLeaderboard().subscribe({
       next: (response: any) => {
@@ -210,37 +230,42 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
   // Método para manejar el cambio de período de análisis
   onPeriodChange(): void {
     this.loading = true;
+    console.log(`Cambiando período a: ${this.selectedPeriod}`);
 
     if (this.selectedPeriod === 'all') {
-      // Si es "all", simplemente recargamos las estadísticas normales
-      this.loadStatistics();
-      this.loading = false;
+      // Si es "all", recargamos las estadísticas normales
+      this.loadStatistics(() => {
+        this.loading = false;
+      });
     } else {
       // Si es otro período, cargamos las estadísticas específicas del período
-      const subscription = this.statisticsService.getStatisticsByPeriod(this.selectedPeriod).subscribe({
-        next: (stats) => {
-          console.log(`${this.selectedPeriod} statistics loaded:`, stats);
+      const subscription = this.statisticsService.getStatisticsByPeriod(this.selectedPeriod)
+        .pipe(
+          finalize(() => {
+            this.loading = false;
+          })
+        )
+        .subscribe({
+          next: (stats) => {
+            console.log(`${this.selectedPeriod} statistics loaded:`, stats);
 
-          if (stats && typeof stats === 'object') {
-            // Actualizamos las estadísticas con los datos del período
-            this.gameStats = stats;
-          } else {
-            // Si no hay datos para el período, mostramos un mensaje
-            this.snackBar.open(`No hay datos disponibles para el período seleccionado`, 'Cerrar', {
-              duration: 3000,
+            if (stats && typeof stats === 'object') {
+              // Actualizamos las estadísticas con los datos del período
+              this.gameStats = stats;
+            } else {
+              // Si no hay datos para el período, mostramos un mensaje
+              this.snackBar.open(`No hay datos disponibles para el período seleccionado`, 'Cerrar', {
+                duration: 3000,
+              });
+            }
+          },
+          error: (error) => {
+            console.error(`Error loading ${this.selectedPeriod} statistics:`, error);
+            this.snackBar.open(`Error cargando estadísticas del período`, 'Cerrar', {
+              duration: 5000,
             });
           }
-
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error(`Error loading ${this.selectedPeriod} statistics:`, error);
-          this.loading = false;
-          this.snackBar.open(`Error cargando estadísticas del período`, 'Cerrar', {
-            duration: 5000,
-          });
-        }
-      });
+        });
 
       this.subscriptions.push(subscription);
     }
