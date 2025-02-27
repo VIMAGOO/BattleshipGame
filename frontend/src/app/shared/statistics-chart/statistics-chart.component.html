@@ -45,6 +45,35 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Charts container -->
+            <div class="charts-container">
+                <!-- Accuracy Evolution Chart -->
+                <div class="chart-wrapper">
+                    <h3>Evolución de Precisión</h3>
+                    <canvas #accuracyChart></canvas>
+                </div>
+
+                <!-- Shot Distribution Chart -->
+                <div class="chart-wrapper">
+                    <h3>Distribución de Disparos</h3>
+                    <canvas #shotDistributionChart></canvas>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <!-- Game Time Evolution Chart -->
+                <div class="chart-wrapper">
+                    <h3>Tiempo de Juego</h3>
+                    <canvas #gameTimeChart></canvas>
+                </div>
+
+                <!-- Score Comparison Chart -->
+                <div class="chart-wrapper" *ngIf="leaderboardData && leaderboardData.length > 0">
+                    <h3>Comparativa de Puntuaciones</h3>
+                    <canvas #scoreComparisonChart></canvas>
+                </div>
+            </div>
         </mat-card-content>
     </mat-card>
 </div>

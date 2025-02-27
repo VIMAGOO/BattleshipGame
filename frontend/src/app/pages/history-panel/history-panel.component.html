@@ -6,9 +6,36 @@
         <h1 class="history-title">Historial de Partidas</h1>
     </div>
 
-    <!-- Sección de estadísticas -->
-    <div class="statistics-section" *ngIf="!loading && gameStats">
-        <app-statistics-chart [stats]="gameStats"></app-statistics-chart>
+    <!-- Sección de estadísticas y gráficos -->
+    <div class="statistics-section" *ngIf="!loading">
+        <div *ngIf="gameStats" class="main-stats">
+            <app-statistics-chart [stats]="gameStats" [games]="games"></app-statistics-chart>
+        </div>
+
+        <!-- Filtros para estadísticas -->
+        <div class="stats-filters" *ngIf="games && games.length > 0">
+            <mat-card>
+                <mat-card-content>
+                    <div class="filter-controls">
+                        <mat-form-field appearance="fill">
+                            <mat-label>Período de análisis</mat-label>
+                            <mat-select [(value)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+                                <mat-option value="all">Todo el tiempo</mat-option>
+                                <mat-option value="monthly">Últimos 30 días</mat-option>
+                                <mat-option value="weekly">Últimos 7 días</mat-option>
+                                <mat-option value="daily">Hoy</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Loading estadísticas -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-text">Cargando estadísticas...</p>
     </div>
 
     <!-- Sección de Ranking Global -->

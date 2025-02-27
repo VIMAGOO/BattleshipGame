@@ -1,5 +1,5 @@
 // src/app/pages/history-panel/history-panel.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -7,6 +7,10 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { StatisticsChartComponent } from '../../shared/statistics-chart/statistics-chart.component';
@@ -37,12 +41,15 @@ interface LeaderboardPlayer {
     MatPaginatorModule,
     MatSortModule,
     MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
     DatePipe,
   ],
   templateUrl: './history-panel.component.html',
   styleUrls: ['./history-panel.component.css'],
 })
-export class HistoryPanelComponent implements OnInit {
+export class HistoryPanelComponent implements OnInit, OnDestroy {
   games: Game[] = [];
   filteredGames: Game[] = [];
   displayedGames: Game[] = [];
@@ -71,6 +78,12 @@ export class HistoryPanelComponent implements OnInit {
   loadingLeaderboard = true;
   currentUsername = ''; // Para destacar al usuario actual en el ranking
 
+  // Filtros de período para estadísticas
+  selectedPeriod: 'all' | 'monthly' | 'weekly' | 'daily' = 'all';
+
+  // Suscripciones
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private gameService: GameService,
     private statisticsService: StatisticsService,
@@ -90,10 +103,15 @@ export class HistoryPanelComponent implements OnInit {
     this.loadLeaderboard();
   }
 
+  ngOnDestroy(): void {
+    // Limpiar todas las suscripciones para evitar memory leaks
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
   loadGameHistory(): void {
     this.loading = true;
 
-    this.gameService.getUserGames().subscribe({
+    const subscription = this.gameService.getUserGames().subscribe({
       next: (response) => {
         console.log('Game history response:', response);
         // Combinamos juegos activos y completados
@@ -118,10 +136,12 @@ export class HistoryPanelComponent implements OnInit {
         });
       },
     });
+
+    this.subscriptions.push(subscription);
   }
 
   loadStatistics(): void {
-    this.statisticsService.getUserStatistics().subscribe({
+    const subscription = this.statisticsService.getUserStatistics().subscribe({
       next: (stats) => {
         console.log('Statistics loaded:', stats);
         this.gameStats = stats;
@@ -133,12 +153,14 @@ export class HistoryPanelComponent implements OnInit {
         });
       },
     });
+
+    this.subscriptions.push(subscription);
   }
 
   loadLeaderboard(): void {
     this.loadingLeaderboard = true;
 
-    this.statisticsService.getLeaderboard().subscribe({
+    const subscription = this.statisticsService.getLeaderboard().subscribe({
       next: (response: any) => {
         console.log('Leaderboard response:', response);
         // Procesamos la respuesta para asegurarnos de tener el formato correcto
@@ -171,6 +193,8 @@ export class HistoryPanelComponent implements OnInit {
         });
       }
     });
+
+    this.subscriptions.push(subscription);
   }
 
   onPageChange(event: PageEvent): void {
@@ -181,6 +205,45 @@ export class HistoryPanelComponent implements OnInit {
 
   onSortChange(sort: Sort): void {
     this.applySort(sort);
+  }
+
+  // Método para manejar el cambio de período de análisis
+  onPeriodChange(): void {
+    this.loading = true;
+
+    if (this.selectedPeriod === 'all') {
+      // Si es "all", simplemente recargamos las estadísticas normales
+      this.loadStatistics();
+      this.loading = false;
+    } else {
+      // Si es otro período, cargamos las estadísticas específicas del período
+      const subscription = this.statisticsService.getStatisticsByPeriod(this.selectedPeriod).subscribe({
+        next: (stats) => {
+          console.log(`${this.selectedPeriod} statistics loaded:`, stats);
+
+          if (stats && typeof stats === 'object') {
+            // Actualizamos las estadísticas con los datos del período
+            this.gameStats = stats;
+          } else {
+            // Si no hay datos para el período, mostramos un mensaje
+            this.snackBar.open(`No hay datos disponibles para el período seleccionado`, 'Cerrar', {
+              duration: 3000,
+            });
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error(`Error loading ${this.selectedPeriod} statistics:`, error);
+          this.loading = false;
+          this.snackBar.open(`Error cargando estadísticas del período`, 'Cerrar', {
+            duration: 5000,
+          });
+        }
+      });
+
+      this.subscriptions.push(subscription);
+    }
   }
 
   private applySort(sort: Sort): void {

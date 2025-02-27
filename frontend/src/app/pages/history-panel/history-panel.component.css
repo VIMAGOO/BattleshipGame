@@ -1,106 +1,129 @@
-/* history-panel.component.css */
+/* src/app/pages/history-panel/history-panel.component.css */
 .history-panel-container {
-  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 1rem;
 }
 
 .history-header {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .history-title {
-  font-size: 24px;
-  font-weight: 500;
-  margin: 0;
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .statistics-section {
-  margin-bottom: 30px;
+  margin-bottom: 2rem;
 }
 
-.games-table-container {
-  margin-top: 20px;
+.main-stats {
+  margin-bottom: 1rem;
 }
 
-.games-table {
-  width: 100%;
+.stats-filters {
+  margin-bottom: 1.5rem;
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-controls mat-form-field {
+  min-width: 200px;
 }
 
 .loading-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  min-height: 200px;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
 }
 
 .loading-text {
-  margin-top: 20px;
-  font-size: 16px;
   color: #666;
+  font-size: 1rem;
 }
 
-.no-games-container {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.no-games-message {
-  font-size: 18px;
-  color: #666;
-}
-
-/* Estilos para la sección de rankings */
-.rankings-section {
-  margin-top: 2rem;
+.no-games-container,
+.no-rankings-container {
+  padding: 1rem;
   margin-bottom: 2rem;
 }
 
-.leaderboard-table {
-  width: 100%;
-}
-
-.current-user {
-  font-weight: bold;
-  color: #1976d2;
-}
-
-.no-rankings-container {
-  margin: 2rem 0;
+.no-games-card,
+.no-rankings-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
   text-align: center;
 }
 
+.no-games-message,
 .no-rankings-message {
-  font-size: 1.2rem;
   color: #666;
+  font-size: 1rem;
 }
 
-/* Ajustar el espaciado entre las secciones */
-.statistics-section,
 .games-table-container,
 .rankings-section {
   margin-bottom: 2rem;
 }
 
-/* Mejoras visuales para todas las tablas */
-table.mat-table {
+/* Estilos para las tablas */
+.games-table,
+.leaderboard-table {
   width: 100%;
 }
 
-th.mat-header-cell {
+table {
+  box-shadow: none !important;
+}
+
+th {
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.87);
+  color: #455a64;
+  font-size: 0.9rem;
+}
+
+td {
+  font-size: 0.9rem;
 }
 
 tr.mat-row:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: #f5f5f5;
 }
 
-/* Destacar la posición en el ranking */
-td.mat-cell:first-of-type {
+/* Destacar usuario actual en el ranking */
+.current-user {
   font-weight: bold;
+  color: #2196f3;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .history-panel-container {
+    padding: 0.5rem;
+  }
+
+  .history-title {
+    font-size: 1.5rem;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .games-table-container {
+    overflow-x: auto;
+  }
 }

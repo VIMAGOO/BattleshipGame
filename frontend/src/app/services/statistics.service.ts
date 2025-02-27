@@ -1,7 +1,7 @@
 // src/app/services/statistics.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, of, catchError } from 'rxjs';
 import { GameStats } from '../models/game';
 
 @Injectable({
@@ -14,7 +14,20 @@ export class StatisticsService {
 
   // Get user statistics
   getUserStatistics(): Observable<GameStats> {
-    return this.http.get<GameStats>(`${this.apiUrl}/statistics`);
+    return this.http.get<GameStats>(`${this.apiUrl}/statistics`).pipe(
+      catchError(error => {
+        console.error('Error fetching statistics:', error);
+        // Retornar un objeto de estadísticas vacío en caso de error
+        return of({
+          total_games: 0,
+          total_shots: 0,
+          total_hits: 0,
+          total_misses: 0,
+          accuracy: 0,
+          average_time: '00:00'
+        });
+      })
+    );
   }
 
   // Get leaderboard with processing to ensure numeric values
@@ -40,6 +53,20 @@ export class StatisticsService {
           total_shots: Number(player.total_shots) || 1, // Evitar división por cero
           duration_seconds: Number(player.duration_seconds) || 0
         }));
+      }),
+      catchError(error => {
+        console.error('Error fetching leaderboard:', error);
+        return of([]);
+      })
+    );
+  }
+
+  // Get historical game data for charts
+  getHistoricalGameData(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/statistics/history`).pipe(
+      catchError(error => {
+        console.error('Error fetching historical data:', error);
+        return of([]);
       })
     );
   }
@@ -73,5 +100,15 @@ export class StatisticsService {
     if (isNaN(start) || isNaN(end)) return 0;
 
     return Math.floor((end - start) / 1000);
+  }
+
+  // Método para obtener estadísticas de juego por período (para gráficos de evolución)
+  getStatisticsByPeriod(period: 'daily' | 'weekly' | 'monthly'): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/statistics/${period}`).pipe(
+      catchError(error => {
+        console.error(`Error fetching ${period} statistics:`, error);
+        return of([]);
+      })
+    );
   }
 }
