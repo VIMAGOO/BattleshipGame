@@ -45,7 +45,7 @@ php artisan key:generate
 
 # Crear la base de datos (si no existe)
 # En MySQL:
-# CREATE DATABASE battleship;
+CREATE DATABASE battleship;
 
 # Ejecutar migraciones y seeders
 php artisan migrate --seed

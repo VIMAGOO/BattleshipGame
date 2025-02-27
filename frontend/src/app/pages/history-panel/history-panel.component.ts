@@ -69,8 +69,19 @@ export class HistoryPanelComponent implements OnInit {
     this.loading = true;
 
     this.gameService.getUserGames().subscribe({
-      next: (games) => {
-        this.games = games;
+      next: (response) => {
+        console.log('Game history response:', response);
+        // Combinamos juegos activos y completados
+        const activeGames = response.active_games || [];
+        const completedGames = response.completed_games || [];
+        this.games = [...activeGames, ...completedGames];
+
+        if (this.games.length === 0) {
+          console.log('No games found');
+        } else {
+          console.log(`Found ${this.games.length} games`);
+        }
+
         this.applySort({ active: 'date', direction: 'desc' });
         this.loading = false;
       },
@@ -87,10 +98,14 @@ export class HistoryPanelComponent implements OnInit {
   loadStatistics(): void {
     this.statisticsService.getUserStatistics().subscribe({
       next: (stats) => {
+        console.log('Statistics loaded:', stats);
         this.gameStats = stats;
       },
       error: (error) => {
         console.error('Error loading statistics:', error);
+        this.snackBar.open('Error cargando estadísticas', 'Cerrar', {
+          duration: 5000,
+        });
       },
     });
   }
@@ -125,21 +140,21 @@ export class HistoryPanelComponent implements OnInit {
         case 'status':
           return this.compare(a.status, b.status, isAsc);
         case 'shots':
-          return this.compare(a.total_shots, b.total_shots, isAsc);
+          return this.compare(a.total_shots || 0, b.total_shots || 0, isAsc);
         case 'hits':
-          return this.compare(a.hits, b.hits, isAsc);
+          return this.compare(a.hits || 0, b.hits || 0, isAsc);
         case 'accuracy':
           const accuracyA =
-            a.total_shots > 0 ? (a.hits / a.total_shots) * 100 : 0;
+            a.total_shots > 0 ? ((a.hits || 0) / a.total_shots) * 100 : 0;
           const accuracyB =
-            b.total_shots > 0 ? (b.hits / b.total_shots) * 100 : 0;
+            b.total_shots > 0 ? ((b.hits || 0) / b.total_shots) * 100 : 0;
           return this.compare(accuracyA, accuracyB, isAsc);
         case 'time':
           const timeA = this.calculateGameTime(a);
           const timeB = this.calculateGameTime(b);
           return this.compare(timeA, timeB, isAsc);
         case 'score':
-          return this.compare(a.score, b.score, isAsc);
+          return this.compare(a.score || 0, b.score || 0, isAsc);
         default:
           return 0;
       }
@@ -155,6 +170,7 @@ export class HistoryPanelComponent implements OnInit {
       startIndex,
       startIndex + this.pageSize
     );
+    console.log('Displayed games updated:', this.displayedGames);
   }
 
   private compare(a: any, b: any, isAsc: boolean): number {
@@ -172,7 +188,7 @@ export class HistoryPanelComponent implements OnInit {
     );
   }
 
-  formatAccuracy(hits: number, totalShots: number): string {
+  formatAccuracy(hits: number = 0, totalShots: number = 0): string {
     return totalShots > 0 ? `${Math.round((hits / totalShots) * 100)}%` : '0%';
   }
 
