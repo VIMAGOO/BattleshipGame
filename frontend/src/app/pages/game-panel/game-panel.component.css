@@ -1,33 +1,40 @@
 /* src/app/pages/game-panel/game-panel.component.css */
 .game-panel-container {
-  padding: 24px;
+  padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #fafafa;
+  min-height: calc(100vh - 64px);
 }
 
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .game-title {
   margin: 0;
-  font-size: 2rem;
-  color: #1976d2;
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #0d47a1;
 }
 
 .new-game-button {
   display: flex;
   align-items: center;
   gap: 8px;
+  border-radius: 24px;
+  padding: 0 24px;
+  height: 48px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .game-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
 .game-status-section {
@@ -36,37 +43,59 @@
 
 .status-card {
   width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background-color: #fff;
+  border: none;
 }
 
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
 }
 
 .status-item {
   text-align: center;
-  padding: 12px 8px;
+  padding: 16px 8px;
+  border-radius: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.status-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .status-label {
   font-size: 14px;
-  color: #666;
-  margin-bottom: 4px;
+  font-weight: 500;
+  color: #546e7a;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .status-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1976d2;
+  font-size: 32px;
+  font-weight: 700;
+  color: #0d47a1;
+}
+
+.score-label {
+  color: #0d47a1;
+}
+
+.score-value {
+  color: #0d47a1;
+  font-weight: 700;
 }
 
 .game-board-section {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .board-wrapper {
@@ -79,17 +108,29 @@
 
 .board-instructions {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   background-color: #e3f2fd;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 16px 24px;
+  border-radius: 12px;
   width: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #0d47a1;
 }
 
 .board-instructions p {
   margin: 0;
   font-size: 16px;
+  font-weight: 500;
   color: #0d47a1;
+}
+
+.view-mode {
+  background-color: #ede7f6;
+  border-left: 4px solid #5e35b1;
+}
+
+.view-mode p {
+  color: #5e35b1;
 }
 
 .loading-container {
@@ -101,13 +142,14 @@
 }
 
 .loading-text {
-  margin-top: 16px;
+  margin-top: 24px;
   font-size: 18px;
-  color: #666;
+  font-weight: 500;
+  color: #546e7a;
 }
 
 /* Responsive adjustments */
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .game-content {
     flex-direction: row;
     align-items: flex-start;
@@ -121,13 +163,13 @@
     width: 70%;
     margin-top: 0;
   }
-
-  .status-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .game-panel-container {
+    padding: 20px;
+  }
+
   .game-header {
     flex-direction: column;
     align-items: flex-start;
@@ -135,7 +177,7 @@
   }
 
   .game-title {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .new-game-button {

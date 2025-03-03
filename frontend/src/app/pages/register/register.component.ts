@@ -16,6 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../services/auth.service';
 
@@ -34,6 +35,7 @@ import { AuthService } from '../../services/auth.service';
     MatCheckboxModule,
     MatButtonModule,
     MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],

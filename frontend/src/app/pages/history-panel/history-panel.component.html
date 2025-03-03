@@ -15,7 +15,7 @@
 
     <!-- Loading estadísticas -->
     <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="40"></mat-spinner>
+        <mat-spinner diameter="40" color="primary"></mat-spinner>
         <p class="loading-text">Cargando estadísticas...</p>
     </div>
 
@@ -81,13 +81,13 @@
     </div>
 
     <div *ngIf="loadingLeaderboard" class="loading-container">
-        <mat-spinner diameter="40"></mat-spinner>
+        <mat-spinner diameter="40" color="primary"></mat-spinner>
         <p class="loading-text">Cargando ranking...</p>
     </div>
 
     <!-- Loader de historial -->
     <div *ngIf="loading" class="loading-container">
-        <mat-spinner></mat-spinner>
+        <mat-spinner color="primary"></mat-spinner>
         <p class="loading-text">Cargando historial...</p>
     </div>
 
@@ -103,6 +103,10 @@
     <!-- Tabla de historial de partidas -->
     <div *ngIf="!loading && games && games.length > 0" class="games-table-container">
         <mat-card>
+            <mat-card-header>
+                <mat-card-title>Historial de Partidas</mat-card-title>
+                <mat-card-subtitle>Todas tus partidas recientes</mat-card-subtitle>
+            </mat-card-header>
             <mat-card-content>
                 <table mat-table [dataSource]="displayedGames" matSort (matSortChange)="onSortChange($event)"
                     class="games-table">

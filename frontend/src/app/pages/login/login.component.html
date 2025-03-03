@@ -11,6 +11,7 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Nombre de usuario</mat-label>
                     <input matInput type="text" formControlName="username" placeholder="Escribe tu nombre de usuario">
+                    <mat-icon matPrefix>person</mat-icon>
                     <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
                         El nombre de usuario es obligatorio
                     </mat-error>
@@ -20,6 +21,7 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Contraseña</mat-label>
                     <input matInput type="password" formControlName="password" placeholder="Escribe tu contraseña">
+                    <mat-icon matPrefix>lock</mat-icon>
                     <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
                         La contraseña es obligatoria
                     </mat-error>
