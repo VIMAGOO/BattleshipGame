@@ -182,6 +182,8 @@ export class GamePanelComponent implements OnInit, OnDestroy {
 
     const subscription = this.gameService.fireShot(this.currentGame.id, shotRequest).subscribe({
       next: (response: ShotResponse) => {
+        console.log('Shot response:', response); // Añadir para depurar
+
         // Update board with shot result
         if (response.board) {
           this.gameBoard = response.board;
@@ -219,10 +221,26 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           );
         } else if (response.sunk) {
           // Show message for sunk ship
+          const shipType = response.ship_type || '';
+          console.log('Barco hundido:', shipType); // Añadir para depurar
           this.snackBar.open(
-            `¡Has hundido un ${this.getShipName(response.ship_type)}!`,
+            `¡Has hundido un ${this.getShipName(shipType)}!`,
             'Cerrar',
             { duration: 3000 }
+          );
+        } else if (response.hit) {
+          // Nueva notificación cuando das a un barco pero no lo hundes
+          this.snackBar.open(
+            '¡Has dado a un barco!',
+            'Cerrar',
+            { duration: 2000 }
+          );
+        } else {
+          // Nueva notificación para disparos fallidos
+          this.snackBar.open(
+            'Agua...',
+            'Cerrar',
+            { duration: 1500 }
           );
         }
 

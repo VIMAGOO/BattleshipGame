@@ -147,16 +147,16 @@ export class GameService {
     return this.http
       .post<any>(`${this.apiUrl}/games/${gameId}/shots`, shotRequest)
       .pipe(
-        tap((response) => console.log('Shot response:', response)),
+        tap((response) => console.log('Shot response from server:', response)),
         map((response) => {
           // Transformar la respuesta al formato esperado
           const shotResponse: ShotResponse = {
             hit: response.hit,
-            sunk: response.sunk || false,
-            ship_type: response.sunk_ship?.type || null,
+            sunk: !!response.sunk_ship, // Convertir a booleano
+            ship_type: response.sunk_ship ? response.sunk_ship.type : null,
             game_over: response.game_over || false,
-            score: response.score || 0, // Añadir score a la respuesta
-            board: null, // Esto es compatible con la interfaz actualizada
+            score: response.score || 0,
+            board: null,
           };
 
           // Si hay un estado final del tablero, añadirlo a la respuesta
