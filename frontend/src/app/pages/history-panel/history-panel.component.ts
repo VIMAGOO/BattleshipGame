@@ -9,7 +9,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
 
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
@@ -43,6 +46,8 @@ interface LeaderboardPlayer {
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
     FormsModule,
     DatePipe,
   ],
@@ -64,6 +69,7 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     'accuracy',
     'time',
     'score',
+    'actions', // Nueva columna para acciones
   ];
   pageSize = 5;
   pageSizeOptions = [5, 10, 25];
@@ -88,7 +94,8 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     private gameService: GameService,
     private statisticsService: StatisticsService,
     private snackBar: MatSnackBar,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router // Añadido para navegación
   ) {
     // Obtener el nombre de usuario actual si está disponible
     const currentUser = this.authService.getCurrentUser();
@@ -225,6 +232,36 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
 
   onSortChange(sort: Sort): void {
     this.applySort(sort);
+  }
+
+  // Método para retomar una partida en progreso
+  resumeGame(game: Game): void {
+    console.log('Retomando partida:', game.id);
+    // Guardar el ID de la partida en localStorage o sessionStorage
+    sessionStorage.setItem('current_game_id', game.id?.toString() || '');
+    // Navegar a la pantalla de juego
+    this.router.navigate(['/game']);
+  }
+
+  // Método para ver una partida completada
+  viewGame(game: Game): void {
+    console.log('Visualizando partida:', game.id);
+    // Obtener el estado final del juego
+    this.gameService.getGameById(game.id!).subscribe({
+      next: (gameDetails) => {
+        // Almacenar el juego completo con detalles en sessionStorage
+        sessionStorage.setItem('view_game', JSON.stringify(gameDetails));
+        sessionStorage.setItem('view_mode', 'true');
+        // Navegar a la pantalla de juego
+        this.router.navigate(['/game']);
+      },
+      error: (error) => {
+        console.error('Error al cargar los detalles del juego:', error);
+        this.snackBar.open('Error al cargar los detalles de la partida', 'Cerrar', {
+          duration: 3000
+        });
+      }
+    });
   }
 
   // Método para manejar el cambio de período de análisis

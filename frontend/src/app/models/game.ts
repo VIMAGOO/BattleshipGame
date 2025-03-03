@@ -47,5 +47,6 @@ export interface ShotResponse {
   sunk?: boolean;
   ship_type?: string;
   game_over?: boolean;
+  score?: number;
   board?: CellState[][] | null; // Añadir null como posible tipo
 }

@@ -3,13 +3,18 @@
 
 <div class="game-panel-container">
     <div class="game-header">
-        <h1 class="game-title">Batalla Naval</h1>
+        <h1 class="game-title">
+            <span *ngIf="!isViewMode">Batalla Naval</span>
+            <span *ngIf="isViewMode">Visualizando Partida Completada</span>
+        </h1>
 
-        <button mat-raised-button color="primary" (click)="startNewGame()" [disabled]="isLoading"
-            class="new-game-button">
-            <mat-icon>refresh</mat-icon>
-            Nueva Partida
-        </button>
+        <div class="header-actions">
+            <button *ngIf="!isViewMode" mat-raised-button color="primary" (click)="startNewGame()"
+                [disabled]="isLoading" class="new-game-button">
+                <mat-icon>refresh</mat-icon>
+                Nueva Partida
+            </button>
+        </div>
     </div>
 
     <div class="game-content" *ngIf="!isLoading && currentGame">
@@ -36,6 +41,12 @@
                             <div class="status-label">Precisión</div>
                             <div class="status-value">{{ gameStats.accuracy }}%</div>
                         </div>
+
+                        <!-- Mostrar puntuación en partidas completadas o en modo visualización -->
+                        <div class="status-item" *ngIf="isGameOver || isViewMode">
+                            <div class="status-label score-label">Puntuación</div>
+                            <div class="status-value score-value">{{ gameStats.score }}</div>
+                        </div>
                     </div>
                 </mat-card-content>
             </mat-card>
@@ -43,11 +54,16 @@
 
         <div class="game-board-section">
             <div class="board-wrapper">
-                <div class="board-instructions" *ngIf="!isGameOver">
+                <!-- Instrucciones diferentes según el modo -->
+                <div class="board-instructions" *ngIf="!isGameOver && !isViewMode">
                     <p>Haz click en una celda para disparar. ¡Encuentra y hunde todos los barcos!</p>
                 </div>
 
-                <app-game-board [board]="gameBoard" [gameOver]="isGameOver" [isLoading]="isFiringShot"
+                <div class="board-instructions view-mode" *ngIf="isViewMode">
+                    <p>Estás visualizando una partida completada. No puedes realizar disparos.</p>
+                </div>
+
+                <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
                     (cellClick)="handleCellClick($event)">
                 </app-game-board>
             </div>
