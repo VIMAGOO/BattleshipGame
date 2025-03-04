@@ -99,39 +99,45 @@
   width: 20px;
 }
 
-/* Game Content Layout - nueva disposición */
+/* Game Content Layout - Nueva disposición horizontal */
 .game-content {
   display: flex;
   flex-direction: row;
   gap: 20px;
   flex: 1;
   width: 100%;
-  max-width: 1600px; /* Mayor ancho máximo para pantallas grandes */
+  max-width: 1900px; /* Mayor ancho máximo para pantallas grandes */
   margin: 0 auto;
+  justify-content: space-between;
 }
 
-/* Columna izquierda */
-.left-column {
-  width: 250px;
+/* Columns styles */
+.game-column {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
-/* Columna central (tablero) */
-.center-column {
-  flex: 1; /* Toma el espacio disponible */
+/* Ajustes específicos para cada columna */
+.stats-column-container {
+  width: 280px;
+  min-width: 280px;
+}
+
+.board-column {
+  flex: 2;
   min-width: 0; /* Importante para que flex funcione correctamente */
   display: flex;
   justify-content: center;
 }
 
-/* Columna derecha */
-.right-column {
-  width: 250px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.fleet-column {
+  width: 280px;
+  min-width: 280px;
+}
+
+.messages-column-container {
+  width: 280px;
+  min-width: 280px;
 }
 
 /* Estilos comunes para todas las cards */
@@ -141,6 +147,7 @@
   background-color: #fff;
   overflow: hidden;
   margin-bottom: 16px;
+  height: 100%;
 }
 
 .card-header {
@@ -253,6 +260,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px 16px;
+  height: 100%;
 }
 
 .ship-item {
@@ -322,6 +330,7 @@
   padding: 12px 16px;
   max-height: 300px; /* Más altura para los mensajes */
   overflow-y: auto;
+  height: 100%;
 }
 
 .message-item {
@@ -404,11 +413,12 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   padding: 15px;
   background-color: #fff;
   border-radius: 16px;
   box-shadow: none;
+  height: 100%;
 }
 
 /* Loading Animation */
@@ -442,60 +452,66 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   .game-content {
     max-width: 100%;
     padding: 0 10px;
   }
-  
-  .left-column, .right-column {
+
+  .stats-column-container,
+  .fleet-column,
+  .messages-column-container {
+    width: 250px;
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .stats-column-container,
+  .fleet-column,
+  .messages-column-container {
     width: 220px;
+    min-width: 220px;
+  }
+
+  .stats-value {
+    font-size: 18px;
+  }
+
+  .stats-item {
+    padding: 8px;
   }
 }
 
 @media (max-width: 992px) {
   .game-content {
-    flex-direction: column;
-    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .left-column, .right-column, .center-column {
-    width: 100%;
-  }
-  
-  .center-column {
+  .board-column {
     order: 1;
-  }
-  
-  .left-column {
-    order: 2;
-  }
-  
-  .right-column {
-    order: 3;
-  }
-  
-  .stats-column {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 10px;
+    min-width: 500px;
+    width: 100%;
+    margin-bottom: 20px;
   }
 
-  .stats-item {
-    flex: 1;
-    min-width: 160px;
+  .stats-column-container {
+    order: 2;
+    width: 48%;
+    min-width: auto;
   }
-  
-  .ships-column {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
+
+  .fleet-column {
+    order: 3;
+    width: 48%;
+    min-width: auto;
   }
-  
-  .ship-item {
-    flex: 1;
-    min-width: 140px;
+
+  .messages-column-container {
+    order: 4;
+    width: 100%;
+    min-width: auto;
   }
 }
 
@@ -518,26 +534,36 @@
     margin-top: 4px;
   }
 
+  .board-column {
+    min-width: 100%;
+  }
+
+  .stats-column-container,
+  .fleet-column {
+    width: 100%;
+  }
+
   .stats-column {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 10px;
   }
 
   .stats-item {
-    padding: 10px;
-    min-width: unset;
-  }
-
-  .stats-value {
-    font-size: 20px;
-  }
-
-  .game-instructions {
-    max-width: 100%;
+    flex: 1;
+    min-width: 160px;
   }
 
   .ships-column {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ship-item {
+    flex: 1;
+    min-width: 140px;
   }
 }
 
@@ -547,7 +573,7 @@
   }
 
   .game-content {
-    gap: 16px;
+    gap: 12px;
     padding: 0;
   }
 
@@ -556,13 +582,17 @@
   }
 
   .stats-item {
-    padding: 8px;
+    min-width: 46%;
+  }
+
+  .ship-item {
+    min-width: 46%;
   }
 
   .messages-column {
-    max-height: 120px;
+    max-height: 150px;
   }
-  
+
   .board-wrapper {
     padding: 10px;
   }
@@ -571,6 +601,19 @@
 @media (max-width: 480px) {
   .game-panel-container {
     padding: 8px;
+  }
+
+  .stats-column {
+    flex-direction: column;
+  }
+
+  .ships-column {
+    flex-direction: column;
+  }
+
+  .stats-item,
+  .ship-item {
+    min-width: 100%;
   }
 
   .stats-item {
@@ -626,26 +669,5 @@
 
   .message-item {
     padding: 6px 8px;
-  }
-}
-
-/* Añadido para dispositivos muy pequeños */
-@media (max-width: 360px) {
-  .game-title {
-    font-size: 1.4rem;
-  }
-
-  .stats-icon {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-  }
-
-  .stats-value {
-    font-size: 16px;
-  }
-
-  .stats-label {
-    font-size: 9px;
   }
 }

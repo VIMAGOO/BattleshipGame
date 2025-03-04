@@ -31,11 +31,10 @@
         </div>
     </div>
 
-    <!-- Game Content con nueva distribución -->
+    <!-- Game Content con nueva distribución horizontal -->
     <div class="game-content" *ngIf="!isLoading && currentGame">
-        <!-- Columna izquierda: Estadísticas y Barcos -->
-        <div class="left-column">
-            <!-- Game Statistics Card -->
+        <!-- Estadísticas -->
+        <div class="game-column stats-column-container">
             <mat-card class="card stats-card">
                 <div class="card-header">
                     <h2 class="card-title">
@@ -95,8 +94,19 @@
                     </div>
                 </div>
             </mat-card>
+        </div>
 
-            <!-- Ships Status Card -->
+        <!-- Tablero de juego -->
+        <div class="game-column board-column">
+            <div class="board-wrapper">
+                <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
+                    (cellClick)="handleCellClick($event)">
+                </app-game-board>
+            </div>
+        </div>
+
+        <!-- Estado de la Flota -->
+        <div class="game-column fleet-column">
             <mat-card class="card">
                 <div class="card-header">
                     <h2 class="card-title">
@@ -118,18 +128,8 @@
             </mat-card>
         </div>
 
-        <!-- Columna central: Tablero de juego -->
-        <div class="center-column">
-            <div class="board-wrapper">
-                <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
-                    (cellClick)="handleCellClick($event)">
-                </app-game-board>
-            </div>
-        </div>
-
-        <!-- Columna derecha: Mensajes -->
-        <div class="right-column">
-            <!-- Messages Log Card -->
+        <!-- Mensajes Recientes -->
+        <div class="game-column messages-column-container">
             <mat-card class="card">
                 <div class="card-header">
                     <h2 class="card-title">
