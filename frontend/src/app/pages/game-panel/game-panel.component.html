@@ -2,11 +2,25 @@
 <app-navbar></app-navbar>
 
 <div class="game-panel-container">
+    <!-- Game Header Section -->
     <div class="game-header">
-        <h1 class="game-title">
-            <span *ngIf="!isViewMode">Batalla Naval</span>
-            <span *ngIf="isViewMode">Visualizando Partida Completada</span>
-        </h1>
+        <div class="title-section">
+            <h1 class="game-title">
+                <span *ngIf="!isViewMode">Batalla Naval</span>
+                <span *ngIf="isViewMode">Visualizando Partida Completada</span>
+            </h1>
+
+            <!-- Game Instructions -->
+            <div class="game-instructions" *ngIf="!isGameOver && !isViewMode">
+                <p><mat-icon class="instruction-icon">touch_app</mat-icon> Haz click en una celda para disparar.
+                    ¡Encuentra y hunde todos los barcos!</p>
+            </div>
+
+            <div class="game-instructions view-mode" *ngIf="isViewMode">
+                <p><mat-icon class="instruction-icon">visibility</mat-icon> Estás visualizando una partida completada.
+                    No puedes realizar disparos.</p>
+            </div>
+        </div>
 
         <div class="header-actions">
             <button *ngIf="!isViewMode" mat-raised-button color="primary" (click)="startNewGame()"
@@ -17,52 +31,70 @@
         </div>
     </div>
 
+    <!-- Game Content -->
     <div class="game-content" *ngIf="!isLoading && currentGame">
+        <!-- Game Stats Section -->
         <div class="game-status-section">
             <mat-card class="status-card">
                 <mat-card-content>
-                    <div class="status-grid">
+                    <div class="status-column">
                         <div class="status-item">
-                            <div class="status-label">Disparos</div>
-                            <div class="status-value">{{ gameStats.shots }}</div>
+                            <div class="status-icon">
+                                <mat-icon>gps_fixed</mat-icon>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label">Disparos</div>
+                                <div class="status-value">{{ gameStats.shots }}</div>
+                            </div>
                         </div>
 
                         <div class="status-item">
-                            <div class="status-label">Aciertos</div>
-                            <div class="status-value">{{ gameStats.hits }}</div>
+                            <div class="status-icon">
+                                <mat-icon>check_circle</mat-icon>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label">Aciertos</div>
+                                <div class="status-value">{{ gameStats.hits }}</div>
+                            </div>
                         </div>
 
                         <div class="status-item">
-                            <div class="status-label">Fallos</div>
-                            <div class="status-value">{{ gameStats.misses }}</div>
+                            <div class="status-icon">
+                                <mat-icon>cancel</mat-icon>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label">Fallos</div>
+                                <div class="status-value">{{ gameStats.misses }}</div>
+                            </div>
                         </div>
 
                         <div class="status-item">
-                            <div class="status-label">Precisión</div>
-                            <div class="status-value">{{ gameStats.accuracy }}%</div>
+                            <div class="status-icon">
+                                <mat-icon>speed</mat-icon>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label">Precisión</div>
+                                <div class="status-value">{{ gameStats.accuracy }}%</div>
+                            </div>
                         </div>
 
-                        <!-- Mostrar puntuación en partidas completadas o en modo visualización -->
-                        <div class="status-item" *ngIf="isGameOver || isViewMode">
-                            <div class="status-label score-label">Puntuación</div>
-                            <div class="status-value score-value">{{ gameStats.score }}</div>
+                        <div class="status-item score-item" *ngIf="isGameOver || isViewMode">
+                            <div class="status-icon">
+                                <mat-icon>emoji_events</mat-icon>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label score-label">Puntuación</div>
+                                <div class="status-value score-value">{{ gameStats.score }}</div>
+                            </div>
                         </div>
                     </div>
                 </mat-card-content>
             </mat-card>
         </div>
 
+        <!-- Game Board Section -->
         <div class="game-board-section">
             <div class="board-wrapper">
-                <!-- Instrucciones diferentes según el modo -->
-                <div class="board-instructions" *ngIf="!isGameOver && !isViewMode">
-                    <p>Haz click en una celda para disparar. ¡Encuentra y hunde todos los barcos!</p>
-                </div>
-
-                <div class="board-instructions view-mode" *ngIf="isViewMode">
-                    <p>Estás visualizando una partida completada. No puedes realizar disparos.</p>
-                </div>
-
                 <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
                     (cellClick)="handleCellClick($event)">
                 </app-game-board>
@@ -70,6 +102,7 @@
         </div>
     </div>
 
+    <!-- Loading Indicator -->
     <div class="loading-container" *ngIf="isLoading">
         <mat-spinner color="primary"></mat-spinner>
         <p class="loading-text">Cargando juego...</p>
