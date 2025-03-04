@@ -671,3 +671,7 @@
     padding: 6px 8px;
   }
 }
+
+.instruction-image {
+  width: 60px;
+}
