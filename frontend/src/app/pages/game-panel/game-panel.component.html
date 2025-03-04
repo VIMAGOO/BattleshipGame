@@ -31,74 +31,121 @@
         </div>
     </div>
 
-    <!-- Game Content -->
+    <!-- Game Content con nueva distribución -->
     <div class="game-content" *ngIf="!isLoading && currentGame">
-        <!-- Game Stats Section -->
-        <div class="game-status-section" [ngClass]="{'isGameOver': isGameOver, 'isViewMode': isViewMode}">
-            <mat-card class="status-card">
-                <mat-card-content>
-                    <div class="status-column">
-                        <div class="status-item">
-                            <div class="status-icon">
-                                <mat-icon>gps_fixed</mat-icon>
-                            </div>
-                            <div class="status-info">
-                                <div class="status-label">Disparos</div>
-                                <div class="status-value">{{ gameStats.shots }}</div>
-                            </div>
+        <!-- Columna izquierda: Estadísticas y Barcos -->
+        <div class="left-column">
+            <!-- Game Statistics Card -->
+            <mat-card class="card stats-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <mat-icon>assessment</mat-icon>
+                        Estadísticas
+                    </h2>
+                </div>
+                <div class="stats-column">
+                    <div class="stats-item">
+                        <div class="stats-icon">
+                            <mat-icon>gps_fixed</mat-icon>
                         </div>
-
-                        <div class="status-item">
-                            <div class="status-icon">
-                                <mat-icon>check_circle</mat-icon>
-                            </div>
-                            <div class="status-info">
-                                <div class="status-label">Aciertos</div>
-                                <div class="status-value">{{ gameStats.hits }}</div>
-                            </div>
-                        </div>
-
-                        <div class="status-item">
-                            <div class="status-icon">
-                                <mat-icon>cancel</mat-icon>
-                            </div>
-                            <div class="status-info">
-                                <div class="status-label">Fallos</div>
-                                <div class="status-value">{{ gameStats.misses }}</div>
-                            </div>
-                        </div>
-
-                        <div class="status-item">
-                            <div class="status-icon">
-                                <mat-icon>speed</mat-icon>
-                            </div>
-                            <div class="status-info">
-                                <div class="status-label">Precisión</div>
-                                <div class="status-value">{{ gameStats.accuracy }}%</div>
-                            </div>
-                        </div>
-
-                        <div class="status-item score-item" *ngIf="isGameOver || isViewMode">
-                            <div class="status-icon">
-                                <mat-icon>emoji_events</mat-icon>
-                            </div>
-                            <div class="status-info">
-                                <div class="status-label score-label">Puntuación</div>
-                                <div class="status-value score-value">{{ gameStats.score }}</div>
-                            </div>
+                        <div class="stats-info">
+                            <div class="stats-label">Disparos</div>
+                            <div class="stats-value">{{ gameStats.shots }}</div>
                         </div>
                     </div>
-                </mat-card-content>
+
+                    <div class="stats-item">
+                        <div class="stats-icon">
+                            <mat-icon>check_circle</mat-icon>
+                        </div>
+                        <div class="stats-info">
+                            <div class="stats-label">Aciertos</div>
+                            <div class="stats-value">{{ gameStats.hits }}</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-item">
+                        <div class="stats-icon">
+                            <mat-icon>cancel</mat-icon>
+                        </div>
+                        <div class="stats-info">
+                            <div class="stats-label">Fallos</div>
+                            <div class="stats-value">{{ gameStats.misses }}</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-item">
+                        <div class="stats-icon">
+                            <mat-icon>speed</mat-icon>
+                        </div>
+                        <div class="stats-info">
+                            <div class="stats-label">Precisión</div>
+                            <div class="stats-value">{{ gameStats.accuracy }}%</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-item score-item" *ngIf="isGameOver || isViewMode">
+                        <div class="stats-icon">
+                            <mat-icon>emoji_events</mat-icon>
+                        </div>
+                        <div class="stats-info">
+                            <div class="stats-label score-label">Puntuación</div>
+                            <div class="stats-value score-value">{{ gameStats.score }}</div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card>
+
+            <!-- Ships Status Card -->
+            <mat-card class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <mat-icon>directions_boat</mat-icon>
+                        Estado de la Flota
+                    </h2>
+                </div>
+                <div class="ships-column">
+                    <div class="ship-item" *ngFor="let ship of shipsStatus">
+                        <div class="ship-icon" [ngClass]="ship.sunk ? 'sunk' : 'alive'">
+                            <mat-icon>{{ ship.sunk ? 'warning' : 'shield' }}</mat-icon>
+                        </div>
+                        <div class="ship-info">
+                            <div class="ship-name">{{ ship.name }}</div>
+                            <div class="ship-status">{{ ship.sunk ? 'Hundido' : 'En el agua' }}</div>
+                        </div>
+                    </div>
+                </div>
             </mat-card>
         </div>
 
-        <!-- Game Board Section -->
-        <div class="game-board-section">
+        <!-- Columna central: Tablero de juego -->
+        <div class="center-column">
             <div class="board-wrapper">
                 <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
                     (cellClick)="handleCellClick($event)">
                 </app-game-board>
             </div>
+        </div>
+
+        <!-- Columna derecha: Mensajes -->
+        <div class="right-column">
+            <!-- Messages Log Card -->
+            <mat-card class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <mat-icon>chat</mat-icon>
+                        Mensajes Recientes
+                    </h2>
+                </div>
+                <div class="messages-column">
+                    <div class="message-item" *ngFor="let message of gameMessages" [ngClass]="message.type">
+                        <div class="message-icon" [ngClass]="message.type">
+                            <mat-icon>{{ message.icon }}</mat-icon>
+                        </div>
+                        <div class="message-text">{{ message.text }}</div>
+                    </div>
+                </div>
+            </mat-card>
         </div>
     </div>
 
