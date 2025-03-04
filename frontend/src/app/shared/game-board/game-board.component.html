@@ -8,32 +8,44 @@
                 {{ label }}
             </div>
         </div>
-
+        
         <!-- Board rows -->
         <div class="board-row" *ngFor="let row of board; let y = index">
-
+            
             <!-- Row label (1-10) -->
             <div class="header-cell row-header">
                 {{ rowLabels[y] }}
             </div>
-
+            
             <!-- Board cells -->
-            <div class="board-cell" [ngClass]="getCellClass(cell)" *ngFor="let cell of row; let x = index"
-                (click)="onCellClick(x, y)">
-
+            <div class="board-cell" 
+                 [ngClass]="getCellClass(cell)" 
+                 *ngFor="let cell of row; let x = index"
+                 (click)="onCellClick(x, y)">
+                
                 <div class="cell-content">
+                    <!-- Ship visualization based on type and orientation -->
+                    <div class="ship-part" *ngIf="cell.status === 'ship' || (cell.status === 'hit' && cell.shipType)" 
+                         [ngClass]="getShipPartClass(x, y, cell)">
+                    </div>
+                    
+                    <!-- Hit marker -->
                     <div *ngIf="cell.status === 'hit'" class="hit-marker">×</div>
-                    <div *ngIf="cell.status === 'miss'" class="miss-marker">•</div>
+                    
+                    <!-- Miss marker with water ripple effect -->
+                    <div *ngIf="cell.status === 'miss'" class="miss-marker">
+                        <div class="water-ripple"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
+    
     <!-- Loading overlay -->
     <div class="loading-overlay" *ngIf="isLoading">
         <div class="loading-spinner"></div>
     </div>
-
+    
     <!-- Game over overlay -->
     <div class="game-over-overlay" *ngIf="gameOver">
         <div class="game-over-message">

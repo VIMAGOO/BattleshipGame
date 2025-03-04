@@ -34,7 +34,7 @@
     <!-- Game Content -->
     <div class="game-content" *ngIf="!isLoading && currentGame">
         <!-- Game Stats Section -->
-        <div class="game-status-section">
+        <div class="game-status-section" [ngClass]="{'isGameOver': isGameOver, 'isViewMode': isViewMode}">
             <mat-card class="status-card">
                 <mat-card-content>
                     <div class="status-column">
