@@ -10,6 +10,10 @@ import { Game, ShotRequest, ShotResponse, CellState } from '../models/game';
 })
 export class GameService {
   private apiUrl = 'http://localhost:8000/api';
+  // Clave para almacenar el tiempo de juego en localStorage
+  private readonly GAME_TIME_KEY = 'battleship_game_time';
+  // Nueva clave para almacenar los tiempos finales de partidas completadas
+  private readonly FINAL_GAME_TIME_KEY = 'battleship_final_game_time';
 
   constructor(private http: HttpClient) { }
 
@@ -95,6 +99,10 @@ export class GameService {
             misses: 0,
             score: 0,
           };
+
+          // Inicializar tiempo para una nueva partida
+          this.saveGameTime(game.id, 0);
+
           observer.next(game);
         } else {
           observer.error('Invalid response format for new game');
@@ -162,6 +170,18 @@ export class GameService {
           // Si hay un estado final del tablero, añadirlo a la respuesta
           if (response.game_over && response.board) {
             shotResponse.board = this.transformBoardFormat(response.board);
+
+            // Si el juego termina, guardar el tiempo actual como tiempo final
+            if (gameId) {
+              // Obtener el tiempo actual de juego (del contador)
+              const currentGameTime = this.getGameTime(gameId);
+
+              // Guardar este tiempo como metadata en localStorage para consultas futuras
+              this.saveFinalGameTime(gameId, currentGameTime);
+
+              // Limpiamos el tiempo de partida en progreso
+              this.clearGameTime(gameId);
+            }
           }
 
           return shotResponse;
@@ -171,6 +191,84 @@ export class GameService {
           return throwError(() => error);
         })
       );
+  }
+
+  // Métodos para gestionar el tiempo de juego
+
+  // Guardar tiempo de juego para una partida específica
+  saveGameTime(gameId: number | undefined, seconds: number): void {
+    if (!gameId) return;
+
+    try {
+      const savedTimes = JSON.parse(localStorage.getItem(this.GAME_TIME_KEY) || '{}');
+      savedTimes[gameId] = seconds;
+      localStorage.setItem(this.GAME_TIME_KEY, JSON.stringify(savedTimes));
+      console.log(`Tiempo guardado para partida ${gameId}: ${seconds} segundos`);
+    } catch (error) {
+      console.error('Error al guardar tiempo de juego:', error);
+    }
+  }
+
+  // Obtener tiempo guardado para una partida específica
+  getGameTime(gameId: number | undefined): number {
+    if (!gameId) return 0;
+
+    try {
+      const savedTimes = JSON.parse(localStorage.getItem(this.GAME_TIME_KEY) || '{}');
+      if (savedTimes[gameId]) {
+        return parseInt(savedTimes[gameId], 10);
+      }
+    } catch (error) {
+      console.error('Error al obtener tiempo guardado:', error);
+    }
+
+    return 0;
+  }
+
+  // Limpiar tiempo guardado cuando una partida se completa
+  clearGameTime(gameId: number | undefined): void {
+    if (!gameId) return;
+
+    try {
+      const savedTimes = JSON.parse(localStorage.getItem(this.GAME_TIME_KEY) || '{}');
+      if (savedTimes[gameId]) {
+        delete savedTimes[gameId];
+        localStorage.setItem(this.GAME_TIME_KEY, JSON.stringify(savedTimes));
+        console.log(`Tiempo eliminado para partida ${gameId}`);
+      }
+    } catch (error) {
+      console.error('Error al limpiar tiempo guardado:', error);
+    }
+  }
+
+  // Guardar tiempo final para una partida completada
+  saveFinalGameTime(gameId: number | undefined, seconds: number): void {
+    if (!gameId) return;
+
+    try {
+      const finalTimes = JSON.parse(localStorage.getItem(this.FINAL_GAME_TIME_KEY) || '{}');
+      finalTimes[gameId] = seconds;
+      localStorage.setItem(this.FINAL_GAME_TIME_KEY, JSON.stringify(finalTimes));
+      console.log(`Tiempo final guardado para partida ${gameId}: ${seconds} segundos`);
+    } catch (error) {
+      console.error('Error al guardar tiempo final de juego:', error);
+    }
+  }
+
+  // Obtener tiempo final para una partida completada
+  getFinalGameTime(gameId: number | undefined): number {
+    if (!gameId) return 0;
+
+    try {
+      const finalTimes = JSON.parse(localStorage.getItem(this.FINAL_GAME_TIME_KEY) || '{}');
+      if (finalTimes[gameId]) {
+        return parseInt(finalTimes[gameId], 10);
+      }
+    } catch (error) {
+      console.error('Error al obtener tiempo final guardado:', error);
+    }
+
+    return 0;
   }
 
   // Comprobar si hay una partida en modo visualización

@@ -9,18 +9,6 @@
                 <span *ngIf="!isViewMode">Batalla Naval</span>
                 <span *ngIf="isViewMode">Visualizando Partida Completada</span>
             </h1>
-
-            <!-- Game Instructions -->
-            <div class="game-instructions" *ngIf="!isGameOver && !isViewMode">
-                <p><mat-icon class="instruction-icon">touch_app</mat-icon> Haz click en una celda para disparar.
-                    ¡Encuentra y hunde todos los barcos!</p>
-                <img class="instruction-image" src="mr-myers.png" alt="Battleship Logo">
-            </div>
-
-            <div class="game-instructions view-mode" *ngIf="isViewMode">
-                <p><mat-icon class="instruction-icon">visibility</mat-icon> Estás visualizando una partida completada.
-                    No puedes realizar disparos.</p>
-            </div>
         </div>
 
         <div class="header-actions">
@@ -36,6 +24,10 @@
     <div class="game-content" *ngIf="!isLoading && currentGame">
         <!-- Estadísticas -->
         <div class="game-column stats-column-container">
+            <!-- Game Instructions -->
+            <div class="game-instructions" *ngIf="!isGameOver && !isViewMode">
+                <p><mat-icon class="instruction-icon">touch_app</mat-icon>¡Haz click en una celda para disparar!</p>
+            </div>
             <mat-card class="card stats-card">
                 <div class="card-header">
                     <h2 class="card-title">
@@ -100,6 +92,17 @@
         <!-- Tablero de juego -->
         <div class="game-column board-column">
             <div class="board-wrapper">
+                <!-- Timer al inicio del board -->
+                <div class="game-timer" *ngIf="!isViewMode">
+                    <div class="timer-icon">
+                        <mat-icon>timer</mat-icon>
+                    </div>
+                    <div class="timer-value">{{ formatTime() }}</div>
+                </div>
+                <div class="game-instructions view-mode" *ngIf="isViewMode">
+                    <p><mat-icon class="instruction-icon">visibility</mat-icon> Estás visualizando una partida
+                        completada.</p>
+                </div>
                 <app-game-board [board]="gameBoard" [gameOver]="isGameOver || isViewMode" [isLoading]="isFiringShot"
                     (cellClick)="handleCellClick($event)">
                 </app-game-board>
@@ -116,13 +119,17 @@
                     </h2>
                 </div>
                 <div class="ships-column">
-                    <div class="ship-item" *ngFor="let ship of shipsStatus">
-                        <div class="ship-icon" [ngClass]="ship.sunk ? 'sunk' : 'alive'">
-                            <mat-icon>{{ ship.sunk ? 'warning' : 'shield' }}</mat-icon>
+                    <div class="ship-item" *ngFor="let ship of shipsStatus" [ngClass]="ship.sunk ? 'sunk' : 'alive'">
+                        <div class="ship-image-container">
+                            <img [src]="ship.imgPath" alt="{{ship.name}}" class="ship-image"
+                                [ngClass]="ship.sunk ? 'ship-sunk' : ''">
                         </div>
                         <div class="ship-info">
                             <div class="ship-name">{{ ship.name }}</div>
                             <div class="ship-status">{{ ship.sunk ? 'Hundido' : 'En el agua' }}</div>
+                        </div>
+                        <div class="ship-icon" [ngClass]="ship.sunk ? 'sunk' : 'alive'">
+                            <mat-icon>{{ ship.sunk ? 'warning' : 'shield' }}</mat-icon>
                         </div>
                     </div>
                 </div>

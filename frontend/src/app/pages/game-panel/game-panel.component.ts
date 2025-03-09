@@ -1,5 +1,5 @@
 // src/app/pages/game-panel/game-panel.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, interval } from 'rxjs';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { GameBoardComponent } from '../../shared/game-board/game-board.component';
 import { GameService } from '../../services/game.service';
@@ -19,6 +19,7 @@ interface ShipStatus {
   name: string;
   sunk: boolean;
   type: string;
+  imgPath: string; // Añadido: ruta de la imagen del barco
 }
 
 interface GameMessage {
@@ -52,6 +53,14 @@ export class GamePanelComponent implements OnInit, OnDestroy {
   isFiringShot = false;
   isViewMode = false; // Nuevo: modo visualización para partidas completadas
 
+  // Control de tiempo
+  gameTime = 0; // Tiempo en segundos
+  timerSubscription?: Subscription;
+  isTabActive = true;
+
+  // Clave para almacenar el tiempo en localStorage
+  private readonly GAME_TIME_KEY = 'battleship_game_time';
+
   gameStats = {
     shots: 0,
     hits: 0,
@@ -60,13 +69,13 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     score: 0, // Añadido: para mostrar puntuación final
   };
 
-  // Nuevo: estado de barcos
+  // Nuevo: estado de barcos (ahora con rutas de imágenes)
   shipsStatus: ShipStatus[] = [
-    { id: 'carrier', name: 'Portaaviones', sunk: false, type: 'carrier' },
-    { id: 'battleship', name: 'Acorazado', sunk: false, type: 'battleship' },
-    { id: 'cruiser', name: 'Crucero', sunk: false, type: 'cruiser' },
-    { id: 'submarine', name: 'Submarino', sunk: false, type: 'submarine' },
-    { id: 'destroyer', name: 'Destructor', sunk: false, type: 'destroyer' }
+    { id: 'carrier', name: 'Portaaviones', sunk: false, type: 'carrier', imgPath: 'assets/images/ships/carrier.png' },
+    { id: 'battleship', name: 'Acorazado', sunk: false, type: 'battleship', imgPath: 'assets/images/ships/battleship.png' },
+    { id: 'cruiser', name: 'Crucero', sunk: false, type: 'cruiser', imgPath: 'assets/images/ships/cruiser.png' },
+    { id: 'submarine', name: 'Submarino', sunk: false, type: 'submarine', imgPath: 'assets/images/ships/submarine.png' },
+    { id: 'destroyer', name: 'Destructor', sunk: false, type: 'destroyer', imgPath: 'assets/images/ships/destroyer.png' }
   ];
 
   // Nuevo: mensajes del juego
@@ -83,11 +92,98 @@ export class GamePanelComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentGame();
+    // Iniciar eventos de visibilidad
+    this.initVisibilityEvents();
   }
 
   ngOnDestroy(): void {
     // Limpiar suscripciones para evitar memory leaks
     this.subscriptions.forEach(sub => sub.unsubscribe());
+
+    // Guardar el tiempo actual antes de destruir el componente
+    if (this.currentGame && this.currentGame.id && !this.isGameOver && !this.isViewMode) {
+      this.saveGameTime();
+    }
+
+    // Detener el temporizador cuando se destruye el componente
+    this.stopTimer();
+  }
+
+  // Escuchar eventos de visibilidad del documento
+  private initVisibilityEvents(): void {
+    document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+  }
+
+  // Gestionar cambios de visibilidad del documento
+  private handleVisibilityChange(): void {
+    if (document.visibilityState === 'visible') {
+      this.isTabActive = true;
+      this.startTimer();
+    } else {
+      this.isTabActive = false;
+      this.stopTimer();
+    }
+  }
+
+  // Cargar el tiempo guardado para una partida específica
+  private loadGameTime(gameId: number): void {
+    try {
+      const savedTimes = JSON.parse(localStorage.getItem(this.GAME_TIME_KEY) || '{}');
+      if (savedTimes[gameId]) {
+        this.gameTime = parseInt(savedTimes[gameId], 10);
+        console.log(`Tiempo cargado para partida ${gameId}: ${this.gameTime} segundos`);
+      } else {
+        this.gameTime = 0;
+        console.log(`No hay tiempo guardado para partida ${gameId}, iniciando en 0`);
+      }
+    } catch (error) {
+      console.error('Error al cargar tiempo guardado:', error);
+      this.gameTime = 0;
+    }
+  }
+
+  // Guardar el tiempo actual para una partida específica
+  private saveGameTime(): void {
+    if (!this.currentGame || !this.currentGame.id) return;
+
+    try {
+      const gameId = this.currentGame.id;
+      const savedTimes = JSON.parse(localStorage.getItem(this.GAME_TIME_KEY) || '{}');
+      savedTimes[gameId] = this.gameTime;
+      localStorage.setItem(this.GAME_TIME_KEY, JSON.stringify(savedTimes));
+      console.log(`Tiempo guardado para partida ${gameId}: ${this.gameTime} segundos`);
+    } catch (error) {
+      console.error('Error al guardar tiempo:', error);
+    }
+  }
+
+  // Iniciar el temporizador del juego
+  private startTimer(): void {
+    // Solo iniciar el temporizador si no es modo visualización y el juego no ha terminado
+    if (!this.isViewMode && !this.isGameOver && !this.timerSubscription) {
+      this.timerSubscription = interval(1000).subscribe(() => {
+        if (this.isTabActive) {
+          this.gameTime++;
+          // Guardar el tiempo cada segundo
+          this.saveGameTime();
+        }
+      });
+    }
+  }
+
+  // Detener el temporizador
+  private stopTimer(): void {
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+      this.timerSubscription = undefined;
+    }
+  }
+
+  // Formatear tiempo para mostrar como MM:SS
+  formatTime(): string {
+    const minutes = Math.floor(this.gameTime / 60);
+    const seconds = this.gameTime % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
   resetShipsStatus(): void {
@@ -106,6 +202,10 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.resetGameMessages();
     this.resetShipsStatus();
+    // Reiniciar el tiempo de juego
+    this.gameTime = 0;
+    // Detener temporizador existente
+    this.stopTimer();
 
     // Primero verificar si estamos en modo visualización
     const viewModeSubscription = this.gameService.checkForViewMode().subscribe(viewGame => {
@@ -140,6 +240,16 @@ export class GamePanelComponent implements OnInit, OnDestroy {
             this.isLoading = false;
             this.isGameOver = game.status === 'completed';
 
+            // Cargar tiempo guardado para esta partida o iniciar en 0
+            if (game.id) {
+              this.loadGameTime(game.id);
+            }
+
+            // Iniciar temporizador solo si no es un juego completado
+            if (!this.isGameOver) {
+              this.startTimer();
+            }
+
             // Añadir mensaje de bienvenida si es un juego nuevo
             if (game.total_shots === 0) {
               this.addGameMessage('¡Bienvenido! Comienza a disparar', 'miss', 'info');
@@ -168,6 +278,10 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     this.resetShipsStatus();
     this.resetGameMessages();
 
+    // Reiniciar tiempo de juego para la nueva partida
+    this.gameTime = 0;
+    this.stopTimer();
+
     const subscription = this.gameService.startNewGame().subscribe({
       next: (response: any) => {
         console.log('New game response:', response);
@@ -190,6 +304,9 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.isGameOver = false;
           this.isViewMode = false; // Asegurarnos de que no estamos en modo visualización
+
+          // Iniciar temporizador para la nueva partida
+          this.startTimer();
 
           // Añadir mensaje de bienvenida
           this.addGameMessage('¡Nueva partida! Comienza a disparar', 'miss', 'info');
@@ -284,6 +401,14 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           this.currentGame!.score = response.score || 0;
           this.gameStats.score = response.score || 0;
 
+          // Detener temporizador cuando el juego termina
+          this.stopTimer();
+
+          // Guardar tiempo final para estadísticas
+          if (this.currentGame && this.currentGame.id) {
+            this.saveGameTime();
+          }
+
           // Agregar mensaje de fin de juego
           this.addGameMessage('¡Felicidades! Has hundido todos los barcos', 'sunk', 'emoji_events');
 
@@ -338,6 +463,7 @@ export class GamePanelComponent implements OnInit, OnDestroy {
   }
 
   // Actualizar estado de barcos basado en el tablero actual
+  // Método mejorado para updateShipsStatusFromBoard
   updateShipsStatusFromBoard(): void {
     // Primero resetear todos los barcos a no hundidos
     this.resetShipsStatus();
@@ -351,24 +477,99 @@ export class GamePanelComponent implements OnInit, OnDestroy {
         this.updateShipStatus(ship.type, true);
       });
     } else {
-      // Intentar detectar barcos hundidos analizando el tablero
-      // Esto es una aproximación simplificada para juegos en progreso o visualizaciones
-      // donde no tenemos la lista explícita de barcos hundidos
+      // Si no tenemos ships explícitamente, vamos a analizar el tablero
+      // para identificar los patrones de barcos hundidos
 
-      // Para cada tipo de barco, verificar si hay suficientes celdas marcadas como hit
-      // Esta lógica depende de la estructura de tu modelo de juego
-      // y podría necesitar ajustes según la implementación exacta
+      // Encontrar todos los 'hits' en el tablero
+      const hitCells: { x: number, y: number }[] = [];
 
-      // Ejemplo simple: si hay suficientes hits en el tablero para un tipo de barco,
-      // consideramos que está hundido (esto es una aproximación)
-      const hitCount = this.countHitsOnBoard();
+      for (let y = 0; y < this.gameBoard.length; y++) {
+        for (let x = 0; x < this.gameBoard[y].length; x++) {
+          if (this.gameBoard[y][x].status === 'hit') {
+            hitCells.push({ x, y });
+          }
+        }
+      }
 
-      // Asumiendo un orden de hundimiento típico: destroyer, submarine, cruiser, etc.
-      if (hitCount >= 2) this.updateShipStatus('destroyer', true);  // Destructor (2 celdas)
-      if (hitCount >= 5) this.updateShipStatus('submarine', true);  // Submarino (3 celdas)
-      if (hitCount >= 8) this.updateShipStatus('cruiser', true);    // Crucero (3 celdas)
-      if (hitCount >= 12) this.updateShipStatus('battleship', true); // Acorazado (4 celdas)
-      if (hitCount >= 17) this.updateShipStatus('carrier', true);    // Portaaviones (5 celdas)
+      // No hay hits, no hay barcos hundidos
+      if (hitCells.length === 0) return;
+
+      // Encontrar agrupaciones contiguas de hits (que representan barcos hundidos)
+      const visitedCells = new Set<string>();
+      const shipGroups: { x: number, y: number }[][] = [];
+
+      for (const cell of hitCells) {
+        const cellKey = `${cell.x},${cell.y}`;
+        if (!visitedCells.has(cellKey)) {
+          // Encontramos un nuevo barco, vamos a explorarlo usando BFS
+          const shipGroup: { x: number, y: number }[] = [];
+          const queue: { x: number, y: number }[] = [cell];
+
+          while (queue.length > 0) {
+            const currentCell = queue.shift()!;
+            const currentKey = `${currentCell.x},${currentCell.y}`;
+
+            if (visitedCells.has(currentKey)) continue;
+
+            visitedCells.add(currentKey);
+            shipGroup.push(currentCell);
+
+            // Comprobamos las 4 direcciones (arriba, abajo, izquierda, derecha)
+            const directions = [
+              { x: 0, y: -1 }, // arriba
+              { x: 0, y: 1 },  // abajo
+              { x: -1, y: 0 }, // izquierda
+              { x: 1, y: 0 }   // derecha
+            ];
+
+            for (const dir of directions) {
+              const nextX = currentCell.x + dir.x;
+              const nextY = currentCell.y + dir.y;
+
+              // Verificar límites del tablero
+              if (nextX >= 0 && nextX < 10 && nextY >= 0 && nextY < 10) {
+                const nextKey = `${nextX},${nextY}`;
+
+                // Si es un hit y no lo hemos visitado, añadirlo a la cola
+                if (this.gameBoard[nextY][nextX].status === 'hit' && !visitedCells.has(nextKey)) {
+                  queue.push({ x: nextX, y: nextY });
+                }
+              }
+            }
+          }
+
+          // Añadimos el grupo encontrado a nuestra lista de barcos
+          if (shipGroup.length > 0) {
+            shipGroups.push(shipGroup);
+          }
+        }
+      }
+
+      // Ahora, determinamos qué tipo de barco es cada grupo según su tamaño
+      for (const group of shipGroups) {
+        const size = group.length;
+
+        // Mapeamos el tamaño del barco a su tipo
+        switch (size) {
+          case 2:
+            this.updateShipStatus('destroyer', true);
+            break;
+          case 3:
+            // Tenemos dos barcos de tamaño 3, vamos a verificar cuáles ya están hundidos
+            if (this.shipsStatus.find(ship => ship.type === 'submarine' && ship.sunk)) {
+              this.updateShipStatus('cruiser', true);
+            } else {
+              this.updateShipStatus('submarine', true);
+            }
+            break;
+          case 4:
+            this.updateShipStatus('battleship', true);
+            break;
+          case 5:
+            this.updateShipStatus('carrier', true);
+            break;
+        }
+      }
     }
   }
 

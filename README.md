@@ -140,9 +140,3 @@ frontend/
 │   └── environments/         # Configuración por entorno
 └── ...
 ```
-
-## Notas Adicionales
-
-- Asegúrate de habilitar CORS en el backend para permitir peticiones desde el frontend.
-- Para el modo producción, considera configurar un proxy inverso (como Nginx) para servir tanto el backend como el frontend.
-- Recuerda ajustar las políticas de seguridad según sea necesario para entornos de producción.

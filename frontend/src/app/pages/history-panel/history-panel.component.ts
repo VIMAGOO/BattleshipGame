@@ -191,17 +191,18 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         console.log('Leaderboard response:', response);
         // Procesamos la respuesta para asegurarnos de tener el formato correcto
+        let leaderboardData: LeaderboardPlayer[] = [];
+
         if (Array.isArray(response)) {
-          this.leaderboard = response;
+          leaderboardData = response;
         } else if (response && typeof response === 'object' && 'leaderboard' in response) {
-          this.leaderboard = response.leaderboard;
+          leaderboardData = response.leaderboard;
         } else {
-          this.leaderboard = [];
           console.error('Formato de respuesta de leaderboard inesperado:', response);
         }
 
         // Aseguramos que los datos numéricos son efectivamente números
-        this.leaderboard = this.leaderboard.map(player => ({
+        leaderboardData = leaderboardData.map(player => ({
           ...player,
           score: Number(player.score),
           accuracy: Number(player.accuracy),
@@ -209,6 +210,9 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
           total_shots: Number(player.total_shots),
           duration_seconds: Number(player.duration_seconds)
         }));
+
+        // MODIFICACIÓN: Filtramos para mantener solo la mejor puntuación de cada jugador
+        this.leaderboard = this.filterBestPlayerScores(leaderboardData);
 
         this.loadingLeaderboard = false;
       },
@@ -222,6 +226,26 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(subscription);
+  }
+
+  // NUEVA FUNCIÓN: Filtrar para mantener solo la mejor puntuación de cada jugador
+  filterBestPlayerScores(players: LeaderboardPlayer[]): LeaderboardPlayer[] {
+    // Crear un mapa para almacenar la mejor puntuación de cada jugador
+    const bestScores = new Map<string, LeaderboardPlayer>();
+
+    // Para cada jugador, guardar solo su mejor puntuación
+    players.forEach(player => {
+      const existingPlayer = bestScores.get(player.username);
+
+      // Si el jugador no existe en el mapa o si esta puntuación es mayor, actualizamos
+      if (!existingPlayer || player.score > existingPlayer.score) {
+        bestScores.set(player.username, player);
+      }
+    });
+
+    // Convertir el mapa a un array y ordenar por puntuación (de mayor a menor)
+    const uniquePlayers = Array.from(bestScores.values());
+    return uniquePlayers.sort((a, b) => b.score - a.score);
   }
 
   onPageChange(event: PageEvent): void {
@@ -338,8 +362,8 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
             b.total_shots > 0 ? ((b.hits || 0) / b.total_shots) * 100 : 0;
           return this.compare(accuracyA, accuracyB, isAsc);
         case 'time':
-          const timeA = this.calculateGameTime(a);
-          const timeB = this.calculateGameTime(b);
+          const timeA = this.getGameTime(a);
+          const timeB = this.getGameTime(b);
           return this.compare(timeA, timeB, isAsc);
         case 'score':
           return this.compare(a.score || 0, b.score || 0, isAsc);
@@ -365,15 +389,31 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
     return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }
 
-  private calculateGameTime(game: Game): number {
-    if (game.status !== 'completed' || !game.end_time) {
-      return 0;
+  private getGameTime(game: Game): number {
+    // Si la partida está completada, primero intentar obtener el tiempo final guardado
+    if (game.status === 'completed' && game.id) {
+      const finalTime = this.gameService.getFinalGameTime(game.id);
+      if (finalTime > 0) {
+        return finalTime;
+      }
+
+      // Si no hay tiempo final guardado (partidas antiguas), usar el cálculo entre fechas
+      if (game.end_time) {
+        // Usamos el método correcto para calcular el tiempo
+        return this.statisticsService.calculateGameDuration(
+          game.start_time,
+          game.end_time
+        );
+      }
     }
 
-    return this.statisticsService.calculateGameDuration(
-      game.start_time,
-      game.end_time
-    );
+    // Para partidas en progreso, intentamos obtener el tiempo guardado en localStorage
+    if (game.id) {
+      return this.gameService.getGameTime(game.id);
+    }
+
+    // Si no hay tiempo guardado, devolver 0 o algún valor por defecto
+    return 0;
   }
 
   formatAccuracy(hits: number = 0, totalShots: number = 0): string {
@@ -386,12 +426,30 @@ export class HistoryPanelComponent implements OnInit, OnDestroy {
   }
 
   formatGameTime(game: Game): string {
-    if (game.status !== 'completed' || !game.end_time) {
-      return 'En progreso';
+    // Si está completo, primero intentar obtener el tiempo final guardado
+    if (game.status === 'completed' && game.id) {
+      const finalTime = this.gameService.getFinalGameTime(game.id);
+      if (finalTime > 0) {
+        return this.statisticsService.formatTime(finalTime);
+      }
+
+      // Si no hay tiempo final guardado, usar el método original
+      if (game.end_time) {
+        const durationInSeconds = this.statisticsService.calculateGameDuration(
+          game.start_time,
+          game.end_time
+        );
+        return this.statisticsService.formatTime(durationInSeconds);
+      }
     }
 
-    const durationInSeconds = this.calculateGameTime(game);
-    return this.statisticsService.formatTime(durationInSeconds);
+    // Para partidas en progreso, intentar obtener el tiempo guardado
+    const seconds = this.getGameTime(game);
+    if (seconds > 0) {
+      return this.formatTime(seconds);
+    }
+
+    return 'En progreso';
   }
 
   formatStatus(status: string): string {
