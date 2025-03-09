@@ -88,21 +88,6 @@ ng serve
 
 El frontend estará disponible en: `http://localhost:4200`
 
-### 5. Compilar para Producción
-
-#### Frontend (Angular)
-
-```bash
-# En el directorio frontend
-ng build --configuration=production
-```
-
-Los archivos compilados se generarán en `frontend/dist/`
-
-#### Backend (Laravel)
-
-Para desplegar el backend en producción, consulta la documentación oficial de Laravel para opciones de despliegue.
-
 ## Estructura del Proyecto
 
 ### Backend (Laravel)
