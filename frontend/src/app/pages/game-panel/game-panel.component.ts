@@ -60,6 +60,8 @@ export class GamePanelComponent implements OnInit, OnDestroy {
 
   // Clave para almacenar el tiempo en localStorage
   private readonly GAME_TIME_KEY = 'battleship_game_time';
+  // Nueva clave para almacenar el estado de la flota en localStorage
+  private readonly SHIPS_STATUS_KEY = 'battleship_ships_status';
 
   gameStats = {
     shots: 0,
@@ -103,6 +105,9 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     // Guardar el tiempo actual antes de destruir el componente
     if (this.currentGame && this.currentGame.id && !this.isGameOver && !this.isViewMode) {
       this.saveGameTime();
+      
+      // Guardar el estado actual de la flota
+      this.saveShipsStatus();
     }
 
     // Detener el temporizador cuando se destruye el componente
@@ -119,9 +124,19 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     if (document.visibilityState === 'visible') {
       this.isTabActive = true;
       this.startTimer();
+      
+      // Al volver a la página, cargar el estado guardado de la flota
+      if (this.currentGame && this.currentGame.id) {
+        this.loadShipsStatus();
+      }
     } else {
       this.isTabActive = false;
       this.stopTimer();
+      
+      // Al abandonar la página, guardar el estado actual de la flota
+      if (this.currentGame && this.currentGame.id) {
+        this.saveShipsStatus();
+      }
     }
   }
 
@@ -154,6 +169,45 @@ export class GamePanelComponent implements OnInit, OnDestroy {
       console.log(`Tiempo guardado para partida ${gameId}: ${this.gameTime} segundos`);
     } catch (error) {
       console.error('Error al guardar tiempo:', error);
+    }
+  }
+
+  // NUEVO: Guardar el estado de la flota en localStorage
+  private saveShipsStatus(): void {
+    if (!this.currentGame || !this.currentGame.id) return;
+
+    try {
+      const gameId = this.currentGame.id;
+      const savedShipsStatus = JSON.parse(localStorage.getItem(this.SHIPS_STATUS_KEY) || '{}');
+      savedShipsStatus[gameId] = this.shipsStatus;
+      localStorage.setItem(this.SHIPS_STATUS_KEY, JSON.stringify(savedShipsStatus));
+      console.log(`Estado de la flota guardado para partida ${gameId}:`, this.shipsStatus);
+    } catch (error) {
+      console.error('Error al guardar estado de la flota:', error);
+    }
+  }
+
+  // NUEVO: Cargar el estado de la flota desde localStorage
+  private loadShipsStatus(): void {
+    if (!this.currentGame || !this.currentGame.id) return;
+
+    try {
+      const gameId = this.currentGame.id;
+      const savedShipsStatus = JSON.parse(localStorage.getItem(this.SHIPS_STATUS_KEY) || '{}');
+      
+      if (savedShipsStatus[gameId]) {
+        // Reemplazar el estado actual con el guardado
+        this.shipsStatus = savedShipsStatus[gameId];
+        console.log(`Estado de la flota cargado para partida ${gameId}:`, this.shipsStatus);
+      } else {
+        // Si no hay estado guardado, actualizar basado en el tablero
+        this.updateShipsStatusFromBoard();
+        console.log(`No hay estado de flota guardado para partida ${gameId}, generando desde el tablero`);
+      }
+    } catch (error) {
+      console.error('Error al cargar estado de la flota:', error);
+      // En caso de error, intentar recalcular basado en el tablero
+      this.updateShipsStatusFromBoard();
     }
   }
 
@@ -231,9 +285,17 @@ export class GamePanelComponent implements OnInit, OnDestroy {
             // Initialize game board from response or create empty board
             if (game.board) {
               this.gameBoard = game.board;
-              this.updateShipsStatusFromBoard(); // Nuevo: actualizar estado de barcos basado en el tablero
+              
+              // IMPORTANTE: Primero intentar cargar el estado guardado de la flota
+              if (game.id) {
+                this.loadShipsStatus();
+              } else {
+                // Si no hay ID de juego, actualizar desde el tablero
+                this.updateShipsStatusFromBoard();
+              }
             } else {
               this.gameBoard = this.gameService.initializeEmptyBoard();
+              this.resetShipsStatus();
             }
 
             this.updateGameStats();
@@ -305,6 +367,11 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           this.isGameOver = false;
           this.isViewMode = false; // Asegurarnos de que no estamos en modo visualización
 
+          // Limpiar el estado de la flota guardado para la partida anterior
+          if (this.currentGame.id) {
+            this.clearSavedShipsStatus(this.currentGame.id);
+          }
+
           // Iniciar temporizador para la nueva partida
           this.startTimer();
 
@@ -330,6 +397,20 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(subscription);
+  }
+
+  // NUEVO: Método para limpiar el estado guardado de la flota para una partida
+  private clearSavedShipsStatus(gameId: number): void {
+    try {
+      const savedShipsStatus = JSON.parse(localStorage.getItem(this.SHIPS_STATUS_KEY) || '{}');
+      if (savedShipsStatus[gameId]) {
+        delete savedShipsStatus[gameId];
+        localStorage.setItem(this.SHIPS_STATUS_KEY, JSON.stringify(savedShipsStatus));
+        console.log(`Estado de flota eliminado para partida ${gameId}`);
+      }
+    } catch (error) {
+      console.error('Error al limpiar estado de flota guardado:', error);
+    }
   }
 
   // Método para manejar clicks en celdas
@@ -382,6 +463,9 @@ export class GamePanelComponent implements OnInit, OnDestroy {
         // Verificar si se hundió un barco y actualizar la lista de barcos
         if (response.sunk && response.ship_type) {
           this.updateShipStatus(response.ship_type, true);
+          
+          // Importante: Guardar el estado de la flota inmediatamente después de hundir un barco
+          this.saveShipsStatus();
 
           // Agregar mensaje de barco hundido
           const shipName = this.getShipName(response.ship_type);
@@ -407,6 +491,8 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           // Guardar tiempo final para estadísticas
           if (this.currentGame && this.currentGame.id) {
             this.saveGameTime();
+            // Guardar el estado final de la flota
+            this.saveShipsStatus();
           }
 
           // Agregar mensaje de fin de juego
@@ -435,6 +521,12 @@ export class GamePanelComponent implements OnInit, OnDestroy {
 
   // Método para ir al historial
   goToHistory(): void {
+    // Guardar el estado actual antes de navegar
+    if (this.currentGame && this.currentGame.id) {
+      this.saveShipsStatus();
+      this.saveGameTime();
+    }
+    
     this.router.navigate(['/history']);
   }
 
@@ -443,6 +535,9 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     const shipIndex = this.shipsStatus.findIndex(ship => ship.type === shipType);
     if (shipIndex !== -1) {
       this.shipsStatus[shipIndex].sunk = isSunk;
+      console.log(`Actualizado estado del barco ${shipType} a hundido=${isSunk}`);
+    } else {
+      console.warn(`No se encontró un barco con tipo ${shipType}`);
     }
   }
 
@@ -462,118 +557,196 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Actualizar estado de barcos basado en el tablero actual
-  // Método mejorado para updateShipsStatusFromBoard
+  // MEJORADO: Método para actualizar estado de barcos basado en el tablero actual
   updateShipsStatusFromBoard(): void {
+    // Solo proceder si tenemos un tablero válido
+    if (!this.gameBoard || this.gameBoard.length === 0) return;
+
+    // Verificar si ya tenemos estado guardado para esta partida
+    if (this.currentGame && this.currentGame.id) {
+      const savedShipsStatus = this.getSavedShipsStatus(this.currentGame.id);
+      if (savedShipsStatus) {
+        // Si hay estado guardado, usarlo en lugar de recalcular
+        this.shipsStatus = savedShipsStatus;
+        console.log('Usando estado de flota guardado:', this.shipsStatus);
+        return;
+      }
+    }
+    
+    console.log('Recalculando estado de flota desde el tablero...');
+
+    // Si no hay estado guardado o no se pudo cargar, recalcular basado en el tablero
     // Primero resetear todos los barcos a no hundidos
     this.resetShipsStatus();
 
     // Verificar si hay información de barcos en el juego actual
     if (this.currentGame && this.currentGame.ships) {
-      // Filtrar los barcos hundidos
+      // Filtrar los barcos hundidos desde la información del juego
       const sunkShips = this.currentGame.ships.filter(ship => ship.sunk);
       // Actualizar el estado de los barcos hundidos
       sunkShips.forEach(ship => {
         this.updateShipStatus(ship.type, true);
       });
+      console.log('Estado de flota actualizado desde ships del juego:', this.shipsStatus);
     } else {
-      // Si no tenemos ships explícitamente, vamos a analizar el tablero
-      // para identificar los patrones de barcos hundidos
-
-      // Encontrar todos los 'hits' en el tablero
-      const hitCells: { x: number, y: number }[] = [];
-
-      for (let y = 0; y < this.gameBoard.length; y++) {
-        for (let x = 0; x < this.gameBoard[y].length; x++) {
-          if (this.gameBoard[y][x].status === 'hit') {
-            hitCells.push({ x, y });
-          }
-        }
-      }
-
-      // No hay hits, no hay barcos hundidos
-      if (hitCells.length === 0) return;
-
-      // Encontrar agrupaciones contiguas de hits (que representan barcos hundidos)
-      const visitedCells = new Set<string>();
-      const shipGroups: { x: number, y: number }[][] = [];
-
-      for (const cell of hitCells) {
-        const cellKey = `${cell.x},${cell.y}`;
-        if (!visitedCells.has(cellKey)) {
-          // Encontramos un nuevo barco, vamos a explorarlo usando BFS
-          const shipGroup: { x: number, y: number }[] = [];
-          const queue: { x: number, y: number }[] = [cell];
-
-          while (queue.length > 0) {
-            const currentCell = queue.shift()!;
-            const currentKey = `${currentCell.x},${currentCell.y}`;
-
-            if (visitedCells.has(currentKey)) continue;
-
-            visitedCells.add(currentKey);
-            shipGroup.push(currentCell);
-
-            // Comprobamos las 4 direcciones (arriba, abajo, izquierda, derecha)
-            const directions = [
-              { x: 0, y: -1 }, // arriba
-              { x: 0, y: 1 },  // abajo
-              { x: -1, y: 0 }, // izquierda
-              { x: 1, y: 0 }   // derecha
-            ];
-
-            for (const dir of directions) {
-              const nextX = currentCell.x + dir.x;
-              const nextY = currentCell.y + dir.y;
-
-              // Verificar límites del tablero
-              if (nextX >= 0 && nextX < 10 && nextY >= 0 && nextY < 10) {
-                const nextKey = `${nextX},${nextY}`;
-
-                // Si es un hit y no lo hemos visitado, añadirlo a la cola
-                if (this.gameBoard[nextY][nextX].status === 'hit' && !visitedCells.has(nextKey)) {
-                  queue.push({ x: nextX, y: nextY });
-                }
-              }
-            }
-          }
-
-          // Añadimos el grupo encontrado a nuestra lista de barcos
-          if (shipGroup.length > 0) {
-            shipGroups.push(shipGroup);
-          }
-        }
-      }
-
-      // Ahora, determinamos qué tipo de barco es cada grupo según su tamaño
-      for (const group of shipGroups) {
-        const size = group.length;
-
-        // Mapeamos el tamaño del barco a su tipo
-        switch (size) {
-          case 2:
-            this.updateShipStatus('destroyer', true);
-            break;
-          case 3:
-            // Tenemos dos barcos de tamaño 3, vamos a verificar cuáles ya están hundidos
-            if (this.shipsStatus.find(ship => ship.type === 'submarine' && ship.sunk)) {
-              this.updateShipStatus('cruiser', true);
-            } else {
-              this.updateShipStatus('submarine', true);
-            }
-            break;
-          case 4:
-            this.updateShipStatus('battleship', true);
-            break;
-          case 5:
-            this.updateShipStatus('carrier', true);
-            break;
-        }
-      }
+      // Si no tenemos ships explícitamente, analizamos el tablero
+      this.updateShipsStatusByAnalyzingBoard();
     }
   }
 
-  // Contar hits en el tablero
+  // NUEVO: Obtener el estado guardado de la flota desde localStorage
+  private getSavedShipsStatus(gameId: number): ShipStatus[] | null {
+    try {
+      const savedShipsStatus = JSON.parse(localStorage.getItem(this.SHIPS_STATUS_KEY) || '{}');
+      if (savedShipsStatus[gameId]) {
+        return savedShipsStatus[gameId];
+      }
+    } catch (error) {
+      console.error('Error al obtener estado de flota guardado:', error);
+    }
+    return null;
+  }
+
+  // MEJORADO: Método para actualizar estado de barcos analizando el tablero
+  private updateShipsStatusByAnalyzingBoard(): void {
+    // Encontrar todos los 'hits' en el tablero
+    const hitCells: { x: number, y: number, shipType?: string }[] = [];
+
+    for (let y = 0; y < this.gameBoard.length; y++) {
+      for (let x = 0; x < this.gameBoard[y].length; x++) {
+        if (this.gameBoard[y][x].status === 'hit') {
+          hitCells.push({ 
+            x, 
+            y, 
+            shipType: this.gameBoard[y][x].shipType 
+          });
+        }
+      }
+    }
+
+    // No hay hits, no hay barcos hundidos
+    if (hitCells.length === 0) {
+      console.log('No se encontraron hits en el tablero');
+      return;
+    }
+
+    // Encontrar grupos contiguos de celdas con hits (barcos potencialmente hundidos)
+    const visitedCells = new Set<string>();
+    const shipGroups: { cells: { x: number, y: number, shipType?: string }[], shipType?: string }[] = [];
+
+    for (const cell of hitCells) {
+      const cellKey = `${cell.x},${cell.y}`;
+      if (!visitedCells.has(cellKey)) {
+        // Encontramos un nuevo grupo, explorarlo con BFS
+        const shipGroup: { x: number, y: number, shipType?: string }[] = [];
+        const queue: { x: number, y: number, shipType?: string }[] = [cell];
+        let groupShipType: string | undefined = cell.shipType;
+
+        while (queue.length > 0) {
+          const currentCell = queue.shift()!;
+          const currentKey = `${currentCell.x},${currentCell.y}`;
+
+          if (visitedCells.has(currentKey)) continue;
+
+          visitedCells.add(currentKey);
+          shipGroup.push(currentCell);
+
+          // Si el tipo de barco está definido, usarlo para este grupo
+          if (currentCell.shipType && !groupShipType) {
+            groupShipType = currentCell.shipType;
+          }
+
+          // Explorar celdas adyacentes (arriba, abajo, izquierda, derecha)
+          const directions = [
+            { x: 0, y: -1 }, // arriba
+            { x: 0, y: 1 },  // abajo
+            { x: -1, y: 0 }, // izquierda
+            { x: 1, y: 0 }   // derecha
+          ];
+
+          for (const dir of directions) {
+            const nextX = currentCell.x + dir.x;
+            const nextY = currentCell.y + dir.y;
+
+            // Verificar límites del tablero
+            if (nextX >= 0 && nextX < 10 && nextY >= 0 && nextY < 10) {
+              const nextKey = `${nextX},${nextY}`;
+
+              // Si es un hit y no lo hemos visitado, añadirlo a la cola
+              if (this.gameBoard[nextY][nextX].status === 'hit' && !visitedCells.has(nextKey)) {
+                queue.push({ 
+                  x: nextX, 
+                  y: nextY, 
+                  shipType: this.gameBoard[nextY][nextX].shipType 
+                });
+              }
+            }
+          }
+        }
+
+        // Añadir el grupo encontrado a nuestra lista de grupos
+        if (shipGroup.length > 0) {
+          shipGroups.push({ cells: shipGroup, shipType: groupShipType });
+        }
+      }
+    }
+
+    console.log('Grupos de barcos encontrados:', shipGroups);
+
+    // Para cada grupo, determinar qué tipo de barco representa según tamaño y tipo de barco (si está disponible)
+    for (const group of shipGroups) {
+      const size = group.cells.length;
+      const shipType = group.shipType;
+
+      // Si el grupo tiene un tipo de barco definido, usarlo
+      if (shipType) {
+        this.updateShipStatus(shipType, true);
+        console.log(`Barco hundido encontrado con tipo explícito: ${shipType}, tamaño: ${size}`);
+        continue;
+      }
+
+      // Si no hay tipo de barco, inferirlo por el tamaño
+      // y verificar cuáles ya están hundidos para evitar duplicados
+      this.determineShipTypeBySize(size);
+    }
+  }
+
+  // NUEVO: Método para determinar el tipo de barco según tamaño
+  private determineShipTypeBySize(size: number): void {
+    // Mapear el tamaño del barco a su tipo y determinar qué barcos ya están hundidos
+    switch (size) {
+      case 5: // Portaaviones
+        if (!this.shipsStatus.find(ship => ship.type === 'carrier' && ship.sunk)) {
+          this.updateShipStatus('carrier', true);
+          console.log('Determinado como portaaviones (tamaño 5)');
+        }
+        break;
+      case 4: // Acorazado
+        if (!this.shipsStatus.find(ship => ship.type === 'battleship' && ship.sunk)) {
+          this.updateShipStatus('battleship', true);
+          console.log('Determinado como acorazado (tamaño 4)');
+        }
+        break;
+      case 3: // Crucero o Submarino
+        // Verificar cuál de los dos barcos de tamaño 3 ya está hundido
+        if (!this.shipsStatus.find(ship => ship.type === 'cruiser' && ship.sunk)) {
+          this.updateShipStatus('cruiser', true);
+          console.log('Determinado como crucero (tamaño 3)');
+        } else if (!this.shipsStatus.find(ship => ship.type === 'submarine' && ship.sunk)) {
+          this.updateShipStatus('submarine', true);
+          console.log('Determinado como submarino (tamaño 3)');
+        }
+        break;
+      case 2: // Destructor
+        if (!this.shipsStatus.find(ship => ship.type === 'destroyer' && ship.sunk)) {
+          this.updateShipStatus('destroyer', true);
+          console.log('Determinado como destructor (tamaño 2)');
+        }
+        break;
+    }
+  }
+  
+  // MEJORADO: Contar hits en el tablero
   countHitsOnBoard(): number {
     let hits = 0;
     for (let row of this.gameBoard) {
@@ -585,7 +758,35 @@ export class GamePanelComponent implements OnInit, OnDestroy {
     }
     return hits;
   }
-
+  
+  // NUEVO: Verificar si un barco está hundido basado en el tablero
+  isShipSunkOnBoard(shipType: string): boolean {
+    // Obtener el tamaño esperado del barco
+    const shipSizes: { [key: string]: number } = {
+      'carrier': 5,
+      'battleship': 4,
+      'cruiser': 3,
+      'submarine': 3,
+      'destroyer': 2
+    };
+    
+    const expectedSize = shipSizes[shipType];
+    if (!expectedSize) return false;
+    
+    // Contar celdas con hits que tengan este tipo de barco
+    let hitCount = 0;
+    for (let row of this.gameBoard) {
+      for (let cell of row) {
+        if (cell.status === 'hit' && cell.shipType === shipType) {
+          hitCount++;
+        }
+      }
+    }
+    
+    // El barco está hundido si todos sus segmentos han sido alcanzados
+    return hitCount === expectedSize;
+  }
+  
   private updateGameStats(): void {
     if (!this.currentGame) return;
 
@@ -601,6 +802,12 @@ export class GamePanelComponent implements OnInit, OnDestroy {
           : 0,
       score: this.currentGame.score || 0,
     };
+    
+    // Cuando actualizamos las estadísticas del juego, también
+    // aprovechamos para guardar el estado actual si el juego está en progreso
+    if (this.currentGame.id && this.currentGame.status !== 'completed' && !this.isViewMode) {
+      this.saveShipsStatus();
+    }
   }
 
   private getShipName(shipType: string | undefined): string {
