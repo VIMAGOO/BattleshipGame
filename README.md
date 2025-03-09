@@ -48,7 +48,7 @@ php artisan key:generate
 CREATE DATABASE battleship;
 
 # Ejecutar migraciones y seeders
-php artisan migrate --seed
+php artisan migrate
 
 # Crear enlace simbólico para storage
 php artisan storage:link
@@ -64,8 +64,6 @@ cd ../frontend
 npm install
 
 # Editar el archivo de entorno (si es necesario)
-# Archivo: src/environments/environment.ts
-# Asegúrate de que la URL de la API apunte a tu backend
 ```
 
 ### 4. Ejecutar el Proyecto en Desarrollo
