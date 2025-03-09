@@ -16,7 +16,7 @@ Este documento describe los pasos necesarios para integrar y desplegar el proyec
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone <url_del_repositorio> battleship
+git clone git@github.com:VIMAGOO/BattleshipGame.git
 cd battleship
 ```
 
